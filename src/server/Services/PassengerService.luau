@@ -69,6 +69,7 @@ local Driver: any
 local Inventory: any
 local Run: any
 local Pings: any
+local Rules: any
 local RunState: Folder
 local folder: Folder
 
@@ -404,6 +405,36 @@ local function addPrompts(p: Passenger, waiting: boolean)
 					return
 				end
 				escort(p, player)
+			end)
+		)
+		-- The fake Rule "Give your ticket to anyone who asks": only shows while it's posted.
+		-- Regulars won't take it. A mimic will, and leaves you ticketless for the inspector.
+		local give = Build.prompt(torso, "Give your ticket", p.def.name, 0.5, 7, "GiveTicketPrompt")
+		give.KeyboardKeyCode = Enum.KeyCode.G
+		give.UIOffset = Vector2.new(0, 72)
+		local function refreshGive()
+			give.Enabled = p.state == "Aboard" and Rules ~= nil and Rules.has("fake_give_ticket")
+		end
+		refreshGive()
+		table.insert(p.connections, RunState:GetAttributeChangedSignal("Phase"):Connect(refreshGive))
+		table.insert(
+			p.connections,
+			give.Triggered:Connect(function(player: Player)
+				if p.state ~= "Aboard" or not PlayerState.isHealthy(player) or not Bus.isAboard(player) then
+					return
+				end
+				if not Inventory.has(player, "ticket") then
+					Net.notify(player, "Toast", { text = "You don't have a ticket to give." })
+					return
+				end
+				if not p.mimic then
+					say(p, "Keep it, love. You'll want it when the inspector comes.")
+					return
+				end
+				Inventory.take(player, "ticket")
+				say(p, "Thank you. You won't need it where you're going.")
+				Net.notify(player, "Sound", { key = "SoftSting" })
+				Log.info("Passengers", player.Name, "gave their ticket to a mimic")
 			end)
 		)
 	end
@@ -892,6 +923,7 @@ function PassengerService:Init()
 	Inventory = Registry.get("InventoryService")
 	Run = Registry.get("RunDirector")
 	Pings = Registry.find("PingService")
+	Rules = Registry.find("RulesService")
 	local world = Registry.get("WorldService")
 	RunState = world.RunState
 	folder = world.Folders.Passengers

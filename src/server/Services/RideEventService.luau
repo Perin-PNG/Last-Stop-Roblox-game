@@ -173,13 +173,73 @@ local function startKnocking(my: number)
 		table.clear(knockLooked)
 		table.clear(knockBroke)
 		local face = knockFace(window)
+		-- The fake Rule says open the window. The true one says don't. Whoever opens it is
+		-- pulled half out of it.
+		local open = Build.prompt(window, "Open the window", "Rear window", 0.8, 8, "OpenWindowPrompt")
+		local opened = false
+		open.Triggered:Connect(function(player: Player)
+			if opened or not PlayerState.isHealthy(player) or not Bus.isAboard(player) then
+				return
+			end
+			opened = true
+			open.Enabled = false
+			if Rules and Rules.has("no_windows") then
+				Driver.ruleBroken(player, "no_windows")
+			end
+			Net.notifyAll("Sound", { key = "Sting", part = window })
+			Net.notifyAll("Toast", { text = `Whatever was knocking wanted in. It got {player.DisplayName}.` })
+			if Dread then
+				Dread.add(player, 25)
+			end
+			PlayerState.down(player, "window")
+			Log.info("Ride", player.Name, "opened the rear window")
+		end)
 		local started = os.clock()
-		while os.clock() - started < Tuning.KnockSeconds and Run.running and window.Parent do
+		while os.clock() - started < Tuning.KnockSeconds and Run.running and window.Parent and not opened do
 			Net.notifyAll("Sound", { key = if rng:chance(0.2) then "GlassSlap" else "Knock", part = window })
 			task.wait(rng:float(1.2, 2))
 		end
 		knocking = false
+		open:Destroy()
 		face:Destroy()
+	end)
+end
+
+-- The Driver speaks ---------------------------------------------------------------------
+-- Only while the fake Rule "If the driver speaks to you, answer" is posted. The Driver
+-- asks a rider by name. Answering costs Patience and Dread; silence is the right call.
+
+local function startDriverQuestion(my: number)
+	task.delay(rng:float(10, 25), function()
+		if my ~= token or not riding() or not (Rules and Rules.has("fake_answer")) then
+			return
+		end
+		local riders = aboard()
+		local refs = Bus.refs
+		if #riders == 0 or not refs or not refs.fareBox then
+			return
+		end
+		local target = rng:pick(riders)
+		Driver.say(`{target.DisplayName}... are you still awake back there?`)
+		local prompt = Build.prompt(refs.fareBox, "Answer the driver", "Driver", 0, 10, "AnswerPrompt")
+		local answered = false
+		prompt.Triggered:Connect(function(player: Player)
+			if answered or not PlayerState.isHealthy(player) then
+				return
+			end
+			answered = true
+			prompt.Enabled = false
+			Driver.change(-12, "answered", player)
+			if Dread then
+				Dread.add(player, 20)
+			end
+			Net.notifyAll("Sound", { key = "SoftSting" })
+			Driver.say("...Good. Then you can see me.")
+			Log.info("Ride", player.Name, "answered the driver")
+		end)
+		task.delay(10, function()
+			prompt:Destroy()
+		end)
 	end)
 end
 
@@ -424,6 +484,9 @@ local function onRideStarted(index: number)
 	table.clear(backRowBroke)
 	if index <= 1 then
 		return
+	end
+	if Rules and Rules.has("fake_answer") and rng:chance(0.5) then
+		startDriverQuestion(token)
 	end
 	local tier = math.clamp((RunState:GetAttribute("Tier") :: number?) or 1, 1, 3)
 	if not rng:chance(Tuning.EventChance[tier]) then
