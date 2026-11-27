@@ -245,6 +245,8 @@ local function refreshSlots()
 	local parts = {}
 	if State.mine("Ticket") == false then
 		table.insert(parts, "NO TICKET")
+	elseif State.mine("Wear_ticket") == "ticket_gold" then
+		table.insert(parts, "gold ticket")
 	end
 	if transfers > 0 then
 		table.insert(parts, transfers .. " transfers")

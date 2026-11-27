@@ -195,6 +195,18 @@ local function publish(player: Player, data: PlayerData)
 			return n
 		end)()
 	)
+	local visited = 0
+	for _ in data.stopsVisited do
+		visited += 1
+	end
+	player:SetAttribute("StopsVisited", visited)
+	local endings = {}
+	for id in data.endings do
+		table.insert(endings, id)
+	end
+	table.sort(endings)
+	player:SetAttribute("EndingsSeen", table.concat(endings, ","))
+	player:SetAttribute("DataSaved", not memoryOnly)
 	player:SetAttribute("DataLoaded", true)
 end
 

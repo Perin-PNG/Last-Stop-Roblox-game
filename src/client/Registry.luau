@@ -25,6 +25,7 @@ Registry.Order = {
 	"SpectateController",
 	"TutorialController",
 	"LobbyController",
+	"MenuController",
 	"ShareController",
 	"DebugController",
 }

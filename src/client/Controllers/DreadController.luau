@@ -88,7 +88,7 @@ function DreadController:Init()
 	end
 	meter = Gui.frame(sg, {
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -12, 0, 12),
+		Position = UDim2.new(1, -12, 0, 50),
 		Size = UDim2.fromOffset(90, 8),
 		Visible = false,
 	})
