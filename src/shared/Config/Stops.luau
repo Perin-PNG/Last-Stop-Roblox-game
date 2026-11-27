@@ -266,6 +266,15 @@ local Plan: { { kind: "fixed" | "vote", tier: number, stop: string?, loopCheck: 
 	{ kind = "vote", tier = 3 },
 }
 
+-- The vertical slice (M1): five stops, the last a stub Terminal.
+local SlicePlan: { { kind: "fixed" | "vote" | "terminal", tier: number, stop: string?, loopCheck: number? } } = {
+	{ kind = "fixed", tier = 1, stop = "gas_and_go" },
+	{ kind = "vote", tier = 1 },
+	{ kind = "vote", tier = 1 },
+	{ kind = "fixed", tier = 1, stop = "gas_and_go", loopCheck = 1 },
+	{ kind = "terminal", tier = 1, stop = "terminal" },
+}
+
 -- The First Ride tutorial route.
 local TutorialPlan: { { kind: "fixed", tier: number, stop: string, loopCheck: number? } } = {
 	{ kind = "fixed", tier = 1, stop = "gas_and_go" },
@@ -277,6 +286,7 @@ return {
 	Stops = Stops,
 	Pools = Pools,
 	Plan = Plan,
+	SlicePlan = SlicePlan,
 	TutorialPlan = TutorialPlan,
 	LoopCheckAnomalyChance = { 0.5, 0.6 },
 }

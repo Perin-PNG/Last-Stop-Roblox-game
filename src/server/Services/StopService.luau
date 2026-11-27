@@ -55,6 +55,11 @@ local function builderFor(id: string): any
 	return require(StopBuilders:WaitForChild("generic"))
 end
 
+function StopService.hasBuilder(id: string): boolean
+	local module = StopBuilders:FindFirstChild(id)
+	return module ~= nil and module:IsA("ModuleScript")
+end
+
 -- Build the stop `id` with its curb at the road frame `road`.
 function StopService.build(
 	id: string,
@@ -135,6 +140,60 @@ function StopService.cleanup()
 		end
 	end
 	StopService.stops = keep
+end
+
+-- Put loot out at a stop. Loot points come from the stop's range, one more for each
+-- player past two. Gas & Go always has fuel and a battery; a stalled bus always finds at
+-- least one fuel can. Fragment sites each hold a route fragment.
+function StopService.stock(stop: BuiltStop, players: number, stalled: boolean?)
+	local def = Config.Stops.Stops[stop.id]
+	if not def then
+		return
+	end
+	local Inventory = Registry.find("InventoryService")
+	if not Inventory then
+		return
+	end
+	local rng = Seed.new(stop.index * 7919 + #stop.id):child("loot" .. stop.id)
+	local points = rng:shuffle(table.clone(stop.refs.lootPoints))
+	local want = rng:int(def.lootPoints[1], def.lootPoints[2]) + math.max(0, players - 2)
+	want = math.min(want, #points)
+	local table_ = Config.Items.LootTables[def.loot] or {}
+	local forced: { string } = {}
+	if stop.id == "gas_and_go" then
+		table.insert(forced, "fuel")
+		table.insert(forced, "battery")
+	end
+	if stalled then
+		for _ = 1, Config.Tuning.Stop.StalledMinCans do
+			table.insert(forced, "fuel")
+		end
+	end
+	local folder: Instance? = stop.refs.model:FindFirstChild("Loot")
+	if not folder then
+		local f = Instance.new("Folder")
+		f.Name = "Loot"
+		f.Parent = stop.refs.model
+		folder = f
+	end
+	for i = 1, want do
+		local point = points[i]
+		local id = forced[i]
+		local tag = point:GetAttribute("Loot")
+		if not id and type(tag) == "string" and tag ~= "" then
+			id = tag
+		end
+		if not id and next(table_) then
+			id = rng:weighted(table_)
+		end
+		if id then
+			local amount = if id == "transfers" then rng:int(1, 3) else nil
+			Inventory.spawnItem(id, point.CFrame, folder, amount)
+		end
+	end
+	for _, site in stop.refs.fragmentSites do
+		Inventory.spawnItem("fragment", site.CFrame, folder)
+	end
 end
 
 function StopService.deactivate(stop: BuiltStop)

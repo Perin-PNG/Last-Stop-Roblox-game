@@ -17,6 +17,8 @@ Registry.Order = {
 	"DreadService",
 	"ChunkService",
 	"BusService",
+	"DriverService",
+	"CabinService",
 	"RouteService",
 	"RulesService",
 	"StopService",

@@ -46,6 +46,7 @@ BusService.lightsOn = true
 BusService.Arrived = Signal.new()
 BusService.DoorsChanged = Signal.new()
 BusService.Stepped = Signal.new()
+BusService.Spawned = Signal.new() -- (refs)
 
 -- Pull-in: bus centre distance from the road centre when docked. The curb is at +20, the
 -- bus is 12 wide, so this leaves about 1.5 studs between the doors and the curb.
@@ -203,6 +204,7 @@ function BusService.spawn(s: number, livery: Color3?)
 		setupPhysics(refs)
 	end
 	Log.info("Bus", "Spawned in", BusService.mode, "mode at s =", s)
+	BusService.Spawned:Fire(refs)
 end
 
 function BusService.despawn()

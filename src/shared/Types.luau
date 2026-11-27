@@ -70,6 +70,10 @@ local PlayerAttr = {
 	Party = "Party",
 	Calm = "Calm", -- Calm Mode setting
 	Muffled = "Muffled",
+	Gaze = "Gaze", -- seconds of mirror gaze, 0..3
+	Flicker = "Flicker", -- flashlight is flickering (counts as looking away)
+	Light = "Light", -- flashlight on
+	Recovering = "Recovering", -- GetServerTimeNow() when the Recovery bay stands them up
 }
 
 return {

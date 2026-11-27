@@ -15,6 +15,8 @@ Tuning.Run = {
 	RouteJoinWait = 12, -- seconds the Route server waits for the whole party
 	EndScreenSeconds = 25,
 	SoloMinStartDelay = 3,
+	Plan = "Slice", -- "Slice" (five stops, M1) or "Full" (11 stops and the Terminal)
+	SliceFragmentsToWin = 1,
 }
 
 Tuning.Bus = {
