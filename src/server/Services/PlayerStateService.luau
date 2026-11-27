@@ -365,6 +365,25 @@ function PlayerStateService.lose(player: Player, reason: string)
 	if s == "Static" or s == "Lobby" then
 		return
 	end
+	-- The First Ride can't be failed: instead of Lost, back to a seat with a word on
+	-- what would have happened.
+	local director = Registry.find("RunDirector")
+	if director and director.mode == "Tutorial" and director.running then
+		local between = Registry.find("BetweenService")
+		if between and between.cancel then
+			between.cancel(player)
+		end
+		PlayerStateService.restore(player)
+		if player.Character then
+			director.placeInBus(player.Character)
+		end
+		setState(player, "Aboard")
+		Net.notify(player, "Fade", { seconds = 1 })
+		Net.notify(player, "Toast", {
+			text = "On a real ride you'd be Lost now. This time the Driver let you back on.",
+		})
+		return
+	end
 	local i = get(player)
 	if i.carrying then
 		PlayerStateService.stopCarrying(player)

@@ -458,6 +458,10 @@ function RunDirector.endRun(ending: string)
 	if not RunDirector.running then
 		return
 	end
+	-- Whatever ends a First Ride (fuel, Patience), it counts as finished.
+	if RunDirector.mode == "Tutorial" then
+		ending = "Tutorial"
+	end
 	RunDirector.running = false
 	RunDirector.token += 1
 	local lost = 0

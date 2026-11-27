@@ -362,6 +362,12 @@ function BetweenService.clearAll()
 	table.clear(walkers)
 end
 
+-- Take a walker out of the Between without an outcome (the First Ride's second chance).
+function BetweenService.cancel(player: Player)
+	walkers[player] = nil
+	player:SetAttribute("InBetween", nil)
+end
+
 function BetweenService.isWalking(player: Player): boolean
 	return walkers[player] ~= nil
 end
