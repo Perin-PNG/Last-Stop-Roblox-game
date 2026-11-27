@@ -770,10 +770,17 @@ local function drainTick(dt: number)
 		local flicker = i.light and (i.battery <= 0 or dreadFlicker)
 		player:SetAttribute("Flicker", flicker)
 		if light then
-			if flicker then
+			local full = Tuning.FlashlightBrightness
+			if flicker and player:GetAttribute("ReduceFlashing") == true then
+				-- Reduce flashing: a slow, dim sputter instead of a strobe.
+				light.Enabled = i.battery > 0 or math.sin(os.clock() * 2) > 0.6
+				light.Brightness = full * (0.35 + 0.15 * math.sin(os.clock() * 3))
+			elseif flicker then
 				light.Enabled = math.random() < (if i.battery <= 0 then 0.25 else 0.6)
+				light.Brightness = full
 			else
 				light.Enabled = i.light
+				light.Brightness = full
 			end
 		end
 		local shown = math.floor(i.battery + 0.5)

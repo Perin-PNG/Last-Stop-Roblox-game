@@ -303,9 +303,12 @@ function MirrorController:Start()
 		Notify.emit("Hint", { id = "dont_watch" })
 	end)
 	Notify.on("MirrorViolation", function()
+		local settings = Registry.find("SettingsController")
+		local reduce = settings ~= nil and settings.get("reduceFlashing") == true
 		flash.Visible = true
-		flash.BackgroundTransparency = 0.35
-		local tween = TweenService:Create(flash, TweenInfo.new(0.8), { BackgroundTransparency = 1 })
+		flash.BackgroundTransparency = if reduce then 0.75 else 0.35
+		local tween =
+			TweenService:Create(flash, TweenInfo.new(if reduce then 1.6 else 0.8), { BackgroundTransparency = 1 })
 		tween:Play()
 		tween.Completed:Once(function()
 			flash.Visible = false

@@ -233,7 +233,8 @@ function PassengerController:Start()
 				local h = Instance.new("Highlight")
 				h.FillColor = Color3.fromRGB(150, 0, 0)
 				h.OutlineColor = Color3.fromRGB(255, 40, 30)
-				h.FillTransparency = 0.45
+				local reduce = Registry.get("SettingsController").get("reduceFlashing") == true
+				h.FillTransparency = if reduce then 0.75 else 0.45
 				h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 				h.Adornee = m
 				h.Parent = m

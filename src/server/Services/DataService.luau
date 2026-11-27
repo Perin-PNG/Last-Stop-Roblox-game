@@ -207,6 +207,7 @@ local function publish(player: Player, data: PlayerData)
 	table.sort(endings)
 	player:SetAttribute("EndingsSeen", table.concat(endings, ","))
 	player:SetAttribute("DataSaved", not memoryOnly)
+	player:SetAttribute("ReduceFlashing", data.settings.reduceFlashing == true)
 	player:SetAttribute("DataLoaded", true)
 end
 
