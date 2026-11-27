@@ -32,6 +32,46 @@ function DebugController.addButton(label: string, action: string, arg: (() -> an
 	end, { Size = UDim2.new(1, -8, 0, 30) })
 end
 
+-- A button that runs on this client only.
+function DebugController.addLocal(label: string, fn: () -> ())
+	if not list then
+		return
+	end
+	Gui.button(list, label, fn, { Size = UDim2.new(1, -8, 0, 30) })
+end
+
+-- Clean screen for store thumbnails and trailer footage: hides every ScreenGui and the
+-- Roblox top bar until you press Insert.
+local cleanHidden: { ScreenGui }? = nil
+local function toggleClean()
+	local StarterGui = game:GetService("StarterGui")
+	local playerGui = game:GetService("Players").LocalPlayer:FindFirstChildOfClass("PlayerGui")
+	if not playerGui then
+		return
+	end
+	if cleanHidden then
+		for _, sg in cleanHidden do
+			sg.Enabled = true
+		end
+		cleanHidden = nil
+		pcall(function()
+			StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
+		end)
+		return
+	end
+	local hidden: { ScreenGui } = {}
+	for _, sg in playerGui:GetChildren() do
+		if sg:IsA("ScreenGui") and sg.Enabled then
+			sg.Enabled = false
+			table.insert(hidden, sg)
+		end
+	end
+	cleanHidden = hidden
+	pcall(function()
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+	end)
+end
+
 local function build()
 	local sg = Gui.screen("DebugPanel", 40)
 	local toggle = Gui.button(sg, "DBG", function()
@@ -94,6 +134,7 @@ function DebugController:Init()
 	DebugController.addButton("Bank a fragment", "fragment")
 	DebugController.addButton("+500 Tokens (and XP)", "tokens")
 	DebugController.addButton("Reset First Ride and hints", "firstride")
+	DebugController.addLocal("Clean screen for thumbnails (Insert to undo)", toggleClean)
 	DebugController.addButton("Force anomaly (id in seed box)", "anomaly", function()
 		return if seedBox and seedBox.Text ~= "" then seedBox.Text else nil
 	end)
@@ -109,6 +150,8 @@ function DebugController:Start()
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if not processed and input.KeyCode == Enum.KeyCode.F8 and panel then
 			panel.Visible = not panel.Visible
+		elseif not processed and input.KeyCode == Enum.KeyCode.Insert then
+			toggleClean()
 		end
 	end)
 end
