@@ -653,6 +653,10 @@ local function land(player: Player, id: string, part: BasePart)
 		if latecomer then
 			latecomer.flare(at)
 		end
+		local finale = Registry.find("FinaleService")
+		if finale then
+			finale.flare(at)
+		end
 		Debris:AddItem(part, Tuning.FlareSeconds)
 	else
 		part:Destroy()

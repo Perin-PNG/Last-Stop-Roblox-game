@@ -511,7 +511,29 @@ function RunDirector.endRun(ending: string)
 end
 
 local function finale(built: any, token: number)
-	-- The M1 stub Terminal: the bus pulls in, the doors open, the Driver's seat is empty.
+	-- The real Terminal: FinaleService runs the power hunt, the wheel and the drive out.
+	local fragmentsHeld = (RunState:GetAttribute("Fragments") :: number?) or 0
+	local Finale = find("FinaleService")
+	if
+		Finale
+		and built
+		and built.refs
+		and built.refs.extras
+		and built.refs.extras.breakers
+		and RunDirector.mode ~= "Tutorial"
+		and fragmentsHeld >= Route.fragmentsNeeded()
+	then
+		local ending = Finale.run(built, function()
+			return alive(token)
+		end)
+		if ending and alive(token) then
+			RunDirector.stopsSurvived += 1
+			RunDirector.endRun(ending)
+		end
+		return
+	end
+	-- Not enough of the map (or the tutorial): the bus pulls in, the doors open, the
+	-- Driver's seat is empty.
 	RunState:SetAttribute("Phase", "Finale")
 	Driver.say(PA.terminal)
 	Bus.setDoors(true)

@@ -28,7 +28,7 @@ local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
 
 local Tuning = Config.Tuning.Bus
 
-export type DriveState = "Parked" | "Cruise" | "Approach" | "Docked" | "Stalled"
+export type DriveState = "Parked" | "Cruise" | "Approach" | "Docked" | "Stalled" | "Manual"
 
 local BusService = {}
 
@@ -53,6 +53,7 @@ BusService.Spawned = Signal.new() -- (refs)
 BusService.PullInOffset = 12.5
 BusService.PullInDistance = 170 -- studs before the curb the bus starts moving over
 BusService.PullOutDistance = 140
+BusService.manual = { throttle = 0, steer = 0, slowUntil = 0 }
 BusService.RideSpot = CFrame.new(0, 0, 9000) -- Stationary: road centre frame the bus sits on
 
 local Chunks: any
@@ -365,9 +366,70 @@ function BusService.dockedCFrame(curbRoad: CFrame): CFrame
 	return rootCf(curbRoad, BusService.PullInOffset) * CFrame.new(0, 0.5, 0)
 end
 
+-- The finale's drive: a player at the wheel sets throttle and steer.
+local Finale = Config.Tuning.Finale
+
+function BusService.beginManual()
+	BusService.state = "Manual"
+	BusService.stopS = nil
+	BusService.departS = nil
+	BusService.manual.throttle = 0
+	BusService.manual.steer = 0
+	BusService.manual.slowUntil = 0
+end
+
+function BusService.endManual()
+	BusService.manual.throttle = 0
+	BusService.manual.steer = 0
+	if BusService.state == "Manual" then
+		BusService.state = "Parked"
+	end
+end
+
+-- Throttle in [0, 1], steer in [-1, 1]. Checked by the caller; clamped again here.
+function BusService.setInput(throttle: number, steer: number)
+	BusService.manual.throttle = math.clamp(throttle, 0, 1)
+	BusService.manual.steer = math.clamp(steer, -1, 1)
+end
+
+-- Knock the bus down to a crawl for a moment (it hit something).
+function BusService.jolt(seconds: number)
+	BusService.manual.slowUntil = os.clock() + seconds
+	BusService.speed *= 0.35
+end
+
+local function manualStep(dt: number)
+	local m = BusService.manual
+	local fuel = (RunState:GetAttribute("Fuel") :: number?) or 1
+	local cap = if os.clock() < m.slowUntil then 0.35 else 1
+	local target = if fuel > 0 then m.throttle * Finale.DriveSpeed * cap else 0
+	if target > BusService.speed then
+		BusService.speed = math.min(target, BusService.speed + Tuning.Accel * 1.4 * dt)
+	else
+		BusService.speed = math.max(target, BusService.speed - Tuning.Brake * dt)
+	end
+	BusService.s += BusService.speed * dt
+	local grip = if BusService.speed > 2 then 1 else 0.25
+	BusService.lateral = math.clamp(
+		BusService.lateral + m.steer * Finale.DriveSteerSpeed * grip * dt,
+		-Finale.DriveLaneHalfWidth,
+		Finale.DriveLaneHalfWidth
+	)
+	RunState:SetAttribute("BusSpeed", math.floor(BusService.speed + 0.5))
+end
+
 local function physicsStep(dt: number)
 	local refs = BusService.refs
 	if not refs or not alignPos or not alignOri then
+		return
+	end
+	if BusService.state == "Manual" then
+		manualStep(dt)
+		local goal = rootCf(Chunks.path:sample(BusService.s), BusService.lateral)
+			* CFrame.Angles(0, -BusService.manual.steer * 0.06 * math.min(1, BusService.speed / 10), 0)
+		alignPos.Position = goal.Position
+		alignOri.CFrame = goal
+		BusService.Stepped:Fire(dt)
 		return
 	end
 	local path = Chunks.path
@@ -420,6 +482,11 @@ local function stationaryStep(dt: number)
 	-- The ride is faked on clients; the server only tracks a virtual distance so ride
 	-- events and the "approach" timing work the same in both modes.
 	local state = BusService.state
+	if state == "Manual" then
+		manualStep(dt)
+		BusService.Stepped:Fire(dt)
+		return
+	end
 	local target = if state == "Cruise" or state == "Approach" then BusService.maxSpeed else 0
 	if target > BusService.speed then
 		BusService.speed = math.min(target, BusService.speed + Tuning.Accel * dt)

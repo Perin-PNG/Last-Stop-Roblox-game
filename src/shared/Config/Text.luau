@@ -29,6 +29,7 @@ local Hints = {
 	dread = "Stay near teammates and light to keep calm.",
 	ping = "Hold Q (or the ping button) to ping.",
 	stalled = "The tank is empty. Someone has to pour fuel before the bus can leave.",
+	drive = "W and S (or the triggers) drive, A and D steer. Keep the tank fed and the doors shut.",
 	loop_check = "Gas & Go again. If anything changed, stay on the bus and pull the cord twice.",
 }
 

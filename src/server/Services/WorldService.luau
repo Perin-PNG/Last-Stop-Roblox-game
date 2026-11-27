@@ -128,6 +128,9 @@ function WorldService.setGhost(character: Model, ghost: boolean)
 	end
 end
 
+-- Night again (after the finale's dawn).
+WorldService.resetLighting = setupLighting
+
 function WorldService:Init()
 	setupCollisionGroups()
 	setupLighting()

@@ -1009,6 +1009,15 @@ function EntityService.activate(built: any, threatId: string)
 	Log.info("Entity", "Woke", threatId, "at", built.id)
 end
 
+-- Loose a threat at a point, telegraphed (the Terminal's roaming threats).
+function EntityService.spawnAt(built: any, threatId: string, at: CFrame?): number
+	local def = Config.Entities[threatId]
+	if not def or not WAKES[def.behavior] then
+		return 0
+	end
+	return #spawnGroup(built, threatId, at, true)
+end
+
 function EntityService.spawnDebug(built: any, threatId: string): boolean
 	return #spawnGroup(built, threatId, nil, false) > 0
 end

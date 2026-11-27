@@ -234,9 +234,9 @@ local Stops: { [string]: StopDef } = {
 		name = "The Terminal",
 		tier = 4,
 		size = "L",
-		loot = "none",
+		loot = "fuel",
 		icon = "unknown",
-		lootPoints = { 0, 0 },
+		lootPoints = { 7, 9 },
 		fragment = 0,
 		signature = "The Driver leaves his seat.",
 		announce = "Terminal. All passengers must disembark.",
@@ -252,7 +252,7 @@ local Pools: { [number]: { string } } = {
 }
 
 -- The route plan: what each stop index is. "vote" means a vote between two pool stops.
-local Plan: { { kind: "fixed" | "vote", tier: number, stop: string?, loopCheck: number? } } = {
+local Plan: { { kind: "fixed" | "vote" | "terminal", tier: number, stop: string?, loopCheck: number? } } = {
 	{ kind = "fixed", tier = 1, stop = "gas_and_go" },
 	{ kind = "vote", tier = 1 },
 	{ kind = "vote", tier = 1 },
@@ -264,6 +264,7 @@ local Plan: { { kind: "fixed" | "vote", tier: number, stop: string?, loopCheck: 
 	{ kind = "vote", tier = 3 },
 	{ kind = "vote", tier = 3 },
 	{ kind = "vote", tier = 3 },
+	{ kind = "terminal", tier = 3, stop = "terminal" },
 }
 
 -- The vertical slice (M1): five stops, the last a stub Terminal.

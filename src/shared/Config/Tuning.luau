@@ -17,7 +17,7 @@ Tuning.Run = {
 	SoloMinStartDelay = 3,
 	-- "Slice" (five stops, M1), "Core" (Tiers 1 and 2, then the Terminal: M2) or "Full"
 	-- (11 stops and the Terminal, once Tier 3 is built).
-	Plan = "Core",
+	Plan = "Full",
 	SliceFragmentsToWin = 1,
 	CoreFragmentsToWin = 3,
 }

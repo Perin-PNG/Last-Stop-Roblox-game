@@ -29,6 +29,7 @@ local REMOTES: { [string]: { kind: "Event" | "Unreliable", rate: number, burst: 
 	Kiosk = { kind = "Event", rate = 2, burst = 4 },
 	Lobby = { kind = "Event", rate = 1, burst = 3 },
 	Tutorial = { kind = "Event", rate = 2, burst = 4 },
+	Drive = { kind = "Unreliable", rate = 14, burst = 16 }, -- finale: throttle and steer
 	Debug = { kind = "Event", rate = 5, burst = 10 }, -- Studio only
 	-- server -> client
 	Notify = { kind = "Event", rate = 0, burst = 0 },
