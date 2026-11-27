@@ -193,7 +193,7 @@ local function reverbFor(): Enum.ReverbType
 		return Enum.ReverbType.Cave -- the Between, and spectating from it
 	end
 	if State.aboard() then
-		return Enum.ReverbType.CarpetedHallway
+		return Enum.ReverbType.CarpettedHallway
 	end
 	local root = State.root()
 	if not root then
