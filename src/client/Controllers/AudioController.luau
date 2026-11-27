@@ -15,6 +15,7 @@
 -- a quiet loop while they're lit and nearby (streetlight hum).
 
 local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
@@ -335,11 +336,39 @@ function AudioController:Init()
 		cabin.Volume = effects
 		outside.Volume = effects
 		music.Volume = master * ((Settings.get("musicVolume") :: number?) or 1)
+		-- Other players' voices, when voice chat runs through the audio API. The change
+		-- is local, so it only sets what this player hears.
+		local voice = (Settings.get("voiceVolume") :: number?) or 1
+		for _, other in Players:GetPlayers() do
+			if other ~= Players.LocalPlayer then
+				for _, d in other:GetDescendants() do
+					if d:IsA("AudioDeviceInput") then
+						pcall(function()
+							d.Volume = voice
+						end)
+					end
+				end
+			end
+		end
 	end
 	volumes()
 	Settings.changed:Connect(function(key: string)
-		if key == "masterVolume" or key == "effectsVolume" or key == "musicVolume" or key == "loaded" then
+		if
+			key == "masterVolume"
+			or key == "effectsVolume"
+			or key == "musicVolume"
+			or key == "voiceVolume"
+			or key == "loaded"
+		then
 			volumes()
+		end
+	end)
+	Players.DescendantAdded:Connect(function(d: Instance)
+		if d:IsA("AudioDeviceInput") and not d:IsDescendantOf(Players.LocalPlayer) then
+			local voice = (Settings.get("voiceVolume") :: number?) or 1
+			pcall(function()
+				d.Volume = voice
+			end)
 		end
 	end)
 end

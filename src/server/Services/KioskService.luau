@@ -68,6 +68,9 @@ local SETTINGS: { [string]: (any) -> boolean } = {
 	musicVolume = function(v)
 		return Net.isFiniteNumber(v) and v >= 0 and v <= 1
 	end,
+	voiceVolume = function(v)
+		return Net.isFiniteNumber(v) and v >= 0 and v <= 1
+	end,
 	reduceScares = function(v)
 		return type(v) == "boolean"
 	end,

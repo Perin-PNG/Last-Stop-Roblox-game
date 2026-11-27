@@ -22,6 +22,7 @@ local values: { [string]: any } = {
 	masterVolume = 1,
 	effectsVolume = 1,
 	musicVolume = 1,
+	voiceVolume = 1, -- other players' voice chat (audio API voice only)
 	sprintToggle = false, -- touch defaults to toggle regardless
 	reduceScares = false, -- quieter stingers, no camera shake
 	soundIndicators = false, -- an arrow toward important sounds, with their caption

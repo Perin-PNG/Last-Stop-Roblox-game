@@ -582,7 +582,7 @@ local function drawSettings()
 	stepper("masterVolume", "Master volume", "Everything in the game", 0, 1, 0.1, percent, 1)
 	stepper("effectsVolume", "Effects volume", "The bus, the stops and everything in them", 0, 1, 0.1, percent, 1)
 	stepper("musicVolume", "Music volume", "Music playing in the world", 0, 1, 0.1, percent, 1)
-	row(nil, "Voice chat volume", "Set in the Roblox menu (Esc), under Settings", {})
+	stepper("voiceVolume", "Voice chat volume", "Other players' voices in the game", 0, 1, 0.1, percent, 1)
 end
 
 local DRAW: { [string]: () -> () } = {
