@@ -5,8 +5,10 @@
     "Workspace": {
       "$className": "Workspace",
       "$ignoreUnknownInstances": true,
-      "TestBlock": {
-        "$path": "world/TestBlock.model.json"
+      "$properties": {
+        "StreamingEnabled": true,
+        "StreamingMinRadius": 128,
+        "StreamingTargetRadius": 768
       }
     },
     "ReplicatedStorage": {
