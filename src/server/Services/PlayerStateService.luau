@@ -563,6 +563,14 @@ end
 
 local accumulator = 0
 
+-- Deadlines move every frame while paused; only replicate when they drift noticeably.
+local function setTime(player: Player, name: string, value: number)
+	local old = player:GetAttribute(name)
+	if type(old) ~= "number" or math.abs(old - value) > 0.5 then
+		player:SetAttribute(name, value)
+	end
+end
+
 local function tick(dt: number)
 	local t = now()
 	for _, player in Players:GetPlayers() do
@@ -591,18 +599,18 @@ local function tick(dt: number)
 				if Bus.lightsOn then
 					i.recoverLeft -= dt
 				end
-				player:SetAttribute("Recovering", t + i.recoverLeft)
+				setTime(player, "Recovering", t + i.recoverLeft)
 				if i.recoverLeft <= 0 then
 					PlayerStateService.revive(player)
 				end
 			elseif Bus.refs and Bus.isAboard(player) then
 				-- Bleed-out pauses on the bus.
-				player:SetAttribute("BleedDeadline", t + i.bleedLeft)
+				setTime(player, "BleedDeadline", t + i.bleedLeft)
 				player:SetAttribute("BleedPaused", true)
 			else
 				i.bleedLeft -= dt
 				player:SetAttribute("BleedPaused", false)
-				player:SetAttribute("BleedDeadline", t + i.bleedLeft)
+				setTime(player, "BleedDeadline", t + i.bleedLeft)
 				if i.bleedLeft <= 0 then
 					PlayerStateService.lose(player, "bled")
 				end
