@@ -39,6 +39,7 @@ Registry.Order = {
 	"RunDirector",
 	"MatchmakingService",
 	"LobbyService",
+	"TutorialService",
 	"KioskService",
 	"CosmeticService",
 	"DebugService",

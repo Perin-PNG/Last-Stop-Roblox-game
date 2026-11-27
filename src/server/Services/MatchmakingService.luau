@@ -67,7 +67,9 @@ local function routeServer()
 	if type(data) == "table" then
 		local d = data :: any
 		expected = math.clamp(tonumber(d.size) or 1, 1, Config.Tuning.Run.MaxPlayers)
-		opts.mode = if type(d.mode) == "string" then d.mode else "Standard"
+		-- Teleport data comes through the client: only known modes.
+		local modes = { Standard = true, Tutorial = true, Daily = true, Graveyard = true }
+		opts.mode = if type(d.mode) == "string" and modes[d.mode] then d.mode else "Standard"
 		opts.party = d.party == true
 		opts.seed = if type(d.seed) == "number" then d.seed else nil
 	end

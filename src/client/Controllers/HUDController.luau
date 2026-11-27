@@ -18,6 +18,7 @@ local Registry = require(Client:WaitForChild("Registry"))
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared:WaitForChild("Config"))
+local Net = require(Shared:WaitForChild("Net"))
 
 local Text = Config.Text
 local Colors = Gui.Colors
@@ -114,15 +115,20 @@ function HUDController.caption(text: string, color: Color3?, seconds: number?)
 	end)
 end
 
+-- Hints show once per player (saved with their data), except during the First Ride.
 function HUDController.hint(id: string)
-	if seenHints[id] then
+	local tutorial = State.get("Mode") == "Tutorial"
+	if seenHints[id] and not tutorial then
 		return
 	end
 	local text = (Text.Hints :: any)[id]
 	if type(text) ~= "string" then
 		return
 	end
-	seenHints[id] = true
+	if not seenHints[id] then
+		seenHints[id] = true
+		Net.event("Tutorial"):FireServer("hint", id)
+	end
 	hintLabel.Text = text
 	hintFrame.Visible = true
 	hintFrame.BackgroundTransparency = 0.25
@@ -203,7 +209,6 @@ local function buildSlots()
 		dropButton.Visible = false
 		local id = Inventory.selectedItem()
 		if id then
-			local Net = require(Shared:WaitForChild("Net"))
 			Net.event("DropItem"):FireServer(Inventory.selected())
 		end
 	end, {
@@ -677,6 +682,15 @@ function HUDController:Start()
 	Notify.on("Toast", function(p: any)
 		if type(p) == "table" and type(p.text) == "string" then
 			HUDController.toast(p.text)
+		end
+	end)
+	Notify.on("HintsSeen", function(p: any)
+		if type(p) == "table" and type(p.ids) == "table" then
+			for _, id in p.ids do
+				if type(id) == "string" then
+					seenHints[id] = true
+				end
+			end
 		end
 	end)
 	Notify.on("Hint", function(p: any)

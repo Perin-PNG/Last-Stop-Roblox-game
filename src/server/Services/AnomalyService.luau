@@ -274,6 +274,15 @@ function AnomalyService.apply(built: any, gasVisits: number)
 		if not built.loopCheck then
 			return -- the baseline visit
 		end
+		-- First Ride: one obvious change, the clerk facing the wall.
+		local director = Registry.find("RunDirector")
+		if director and director.mode == "Tutorial" then
+			local def = Defs.ById.clerk_facing_wall
+			if def and applyOne(built, def) then
+				built.loopAnomalous = true
+			end
+			return
+		end
 		local chance = Config.Stops.LoopCheckAnomalyChance[math.clamp(built.loopCheck, 1, 2)]
 		if rng:chance(chance) then
 			for _, def in rng:shuffle(pool) do

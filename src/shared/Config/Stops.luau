@@ -264,7 +264,6 @@ local Plan: { { kind: "fixed" | "vote" | "terminal", tier: number, stop: string?
 	{ kind = "vote", tier = 3 },
 	{ kind = "vote", tier = 3 },
 	{ kind = "vote", tier = 3 },
-	{ kind = "terminal", tier = 3, stop = "terminal" },
 }
 
 -- The vertical slice (M1): five stops, the last a stub Terminal.

@@ -48,6 +48,7 @@ export type PlayerData = {
 	purchases: { [string]: number },
 	settings: { [string]: any },
 	tutorialDone: boolean,
+	hints: { [string]: boolean },
 	offDutyTalks: number,
 }
 
@@ -69,6 +70,7 @@ local function template(): PlayerData
 		purchases = {},
 		settings = {},
 		tutorialDone = false,
+		hints = {},
 		offDutyTalks = 0,
 	}
 end
