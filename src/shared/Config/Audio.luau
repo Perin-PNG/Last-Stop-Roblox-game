@@ -17,6 +17,7 @@ local S: { [string]: SoundDef } = {
 	Rain = { id = "", volume = 0.4, looped = true },
 	Knock = { id = "", volume = 0.9, caption = "Knocking on the rear window" },
 	FluorBuzz = { id = "", volume = 0.2, looped = true },
+	StreetlightHum = { id = "", volume = 0.15, looped = true },
 	PourFuel = { id = "", volume = 0.6, caption = "Fuel pouring" },
 	Heartbeat = { id = "", volume = 0.6, looped = true },
 	Breath = { id = "", volume = 0.4, looped = true },

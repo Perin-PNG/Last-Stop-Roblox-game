@@ -7,6 +7,7 @@
 -- into the lot, -Z is road-forward, +Y is up. The road is at x in [-40, 0], the sidewalk
 -- at x in [0, 10]. The Latecomer walks in along the sidewalk from +Z.
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -303,6 +304,9 @@ function StopKit.streetlight(refs: StopRefs, z: number, x: number?): BasePart
 	}, model)
 	local light = Build.light(lamp, "Spot", C.Sodium, 3, 46, false);
 	(light :: SpotLight).Angle = 110
+	-- A faint sodium hum the client plays while the lamp is lit (see AudioController).
+	lamp:SetAttribute("Emit", "StreetlightHum")
+	CollectionService:AddTag(lamp, "Emitter")
 	table.insert(refs.streetlights, lamp)
 	return lamp
 end
