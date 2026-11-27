@@ -257,12 +257,6 @@ return function(parent: Instance, frame: CFrame, ctx: StopKit.Ctx, title: string
 			StopKit.lootPoint(refs, pos + Vector3.new(0.5, 3.4, 1))
 		end
 	end
-	StopKit.setShown(food, false)
-	for _, d in food:GetDescendants() do
-		if d:IsA("ParticleEmitter") then
-			d.Enabled = false
-		end
-	end
 	if picnicSlot then
 		StopKit.slot(refs, "picnic", picnicSlot, { rest_picnic = food :: Instance })
 	end

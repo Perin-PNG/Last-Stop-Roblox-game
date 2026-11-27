@@ -399,14 +399,15 @@ function StopKit.setShown(inst: Instance, shown: boolean)
 				d.CanCollide = false
 			end
 			d.CanQuery = shown
-		elseif d:IsA("Light") then
+		elseif d:IsA("Light") or d:IsA("ParticleEmitter") then
+			local e = d :: any
 			if not shown then
 				if d:GetAttribute("ShownEnabled") == nil then
-					d:SetAttribute("ShownEnabled", d.Enabled)
+					d:SetAttribute("ShownEnabled", e.Enabled)
 				end
-				d.Enabled = false
+				e.Enabled = false
 			else
-				d.Enabled = (d:GetAttribute("ShownEnabled") :: boolean?) ~= false
+				e.Enabled = (d:GetAttribute("ShownEnabled") :: boolean?) ~= false
 			end
 		elseif d:IsA("SurfaceGui") or d:IsA("BillboardGui") or d:IsA("ProximityPrompt") then
 			(d :: any).Enabled = shown
