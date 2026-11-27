@@ -145,6 +145,28 @@ local function buildLobby()
 		group = "World",
 	}, string.upper(Config.GameName) .. "\nHOLLOW COUNTY TRANSIT", Enum.NormalId.Front, C.White)
 	title.Font = Enum.Font.GothamBlack
+	-- The Route Map wall: each player sees their own stamps (RouteMapController).
+	local mapCf = CFrame.new(24, 0, -34) * CFrame.Angles(0, math.rad(-90), 0)
+	for _, side in { -9.6, 9.6 } do
+		P(model, {
+			name = "RouteMapPost",
+			size = Vector3.new(0.6, 12, 0.6),
+			cf = mapCf * CFrame.new(side, 6, 0),
+			color = Color3.fromRGB(60, 62, 66),
+			material = Enum.Material.Metal,
+			group = "World",
+		})
+	end
+	local mapBoard = P(model, {
+		name = "RouteMap",
+		size = Vector3.new(18.6, 9, 0.5),
+		cf = mapCf * CFrame.new(0, 7, 0),
+		color = Color3.fromRGB(226, 222, 206),
+		material = Enum.Material.SmoothPlastic,
+		group = "World",
+	})
+	local mapLight = Build.light(mapBoard, "Surface", Color3.fromRGB(255, 236, 200), 0.6, 10, false) :: SurfaceLight
+	mapLight.Face = Enum.NormalId.Front
 	-- Benches.
 	for _, z in { -30, 30 } do
 		P(model, {
