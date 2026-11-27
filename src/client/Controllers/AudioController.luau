@@ -36,8 +36,37 @@ local outside: SoundGroup
 local cabinEq: EqualizerSoundEffect
 local outsideEq: EqualizerSoundEffect
 local anchor: Part -- holds sounds played at a point
+local music: SoundGroup
 
-local function groupFor(parent: Instance): SoundGroup
+-- Music, for the music volume setting; everything else is an effect.
+local MUSIC = { MallMusic = true, Dawn = true }
+-- Stingers that Reduced jumpscares plays quieter.
+local SCARES = { Sting = true, Crash = true, LatecomerHiss = true, DoorCreak = true }
+
+local function arrowTo(pos: Vector3): string
+	local camera = workspace.CurrentCamera
+	if not camera then
+		return ""
+	end
+	local rel = camera.CFrame:PointToObjectSpace(pos)
+	if Vector2.new(rel.X, rel.Z).Magnitude < 4 then
+		return ""
+	end
+	local angle = math.deg(math.atan2(rel.X, -rel.Z))
+	if angle > -35 and angle < 35 then
+		return "\u{2191} "
+	elseif angle >= 35 and angle <= 145 then
+		return "\u{2192} "
+	elseif angle <= -35 and angle >= -145 then
+		return "\u{2190} "
+	end
+	return "\u{2193} "
+end
+
+local function groupFor(parent: Instance, key: string?): SoundGroup
+	if key and MUSIC[key] then
+		return music
+	end
 	if parent == SoundService then
 		return group
 	end
@@ -54,9 +83,14 @@ local function groupFor(parent: Instance): SoundGroup
 	return outside
 end
 
-local function caption(def: any, key: string)
-	if def and def.caption and Settings.get("captions") then
-		Notify.emit("Caption", { text = def.caption, key = key })
+local function caption(def: any, key: string, pos: Vector3?)
+	if not def or not def.caption then
+		return
+	end
+	local indicators = Settings.get("soundIndicators") == true
+	if Settings.get("captions") or indicators then
+		local arrow = if indicators and pos then arrowTo(pos) else ""
+		Notify.emit("Caption", { text = arrow .. def.caption, key = key })
 	end
 end
 
@@ -71,9 +105,9 @@ local function make(key: string, parent: Instance, looped: boolean?): Sound?
 	local s = Instance.new("Sound")
 	s.Name = key
 	s.SoundId = def.id
-	s.Volume = def.volume
+	s.Volume = def.volume * (if SCARES[key] and Settings.get("reduceScares") then 0.35 else 1)
 	s.Looped = looped == true or def.looped == true
-	s.SoundGroup = groupFor(parent)
+	s.SoundGroup = groupFor(parent, key)
 	s.RollOffMaxDistance = 140
 	s.RollOffMinDistance = 8
 	s.Parent = parent
@@ -83,7 +117,8 @@ end
 -- Play a sound. part: on a part (3D); at: at a world point; neither: flat.
 function AudioController.play(key: string, part: Instance?, at: Vector3?, loop: boolean?): Sound?
 	local def = Config.Audio[key]
-	caption(def, key)
+	local pos = if part and part:IsA("BasePart") then part.Position else at
+	caption(def, key, pos)
 	local parent: Instance = SoundService
 	if part and part:IsA("BasePart") then
 		parent = part
@@ -101,7 +136,7 @@ function AudioController.play(key: string, part: Instance?, at: Vector3?, loop: 
 		return nil
 	end
 	if parent:IsA("Attachment") then
-		s.SoundGroup = groupFor(parent)
+		s.SoundGroup = groupFor(parent, key)
 	end
 	s:Play()
 	if not s.Looped then
@@ -285,11 +320,21 @@ function AudioController:Init()
 	anchor.Size = Vector3.one
 	anchor.CFrame = CFrame.new()
 	anchor.Parent = workspace
-	Settings.changed:Connect(function(key: string, value: any)
-		if key == "masterVolume" then
-			group.Volume = value
-			cabin.Volume = value
-			outside.Volume = value
+	music = Instance.new("SoundGroup")
+	music.Name = "Music"
+	music.Parent = SoundService
+	local function volumes()
+		local master = (Settings.get("masterVolume") :: number?) or 1
+		local effects = master * ((Settings.get("effectsVolume") :: number?) or 1)
+		group.Volume = effects
+		cabin.Volume = effects
+		outside.Volume = effects
+		music.Volume = master * ((Settings.get("musicVolume") :: number?) or 1)
+	end
+	volumes()
+	Settings.changed:Connect(function(key: string)
+		if key == "masterVolume" or key == "effectsVolume" or key == "musicVolume" or key == "loaded" then
+			volumes()
 		end
 	end)
 end

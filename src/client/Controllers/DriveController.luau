@@ -31,7 +31,7 @@ local shakeStrength = 0
 
 local function reducedMotion(): boolean
 	local settings = Registry.find("SettingsController")
-	return settings ~= nil and settings.get("reduceFlashing") == true
+	return settings ~= nil and (settings.get("reduceFlashing") == true or settings.get("reduceScares") == true)
 end
 
 -- The seat this player is sitting in, if it's the bus's Driver's seat.

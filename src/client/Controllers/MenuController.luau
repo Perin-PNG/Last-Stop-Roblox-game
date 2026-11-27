@@ -7,6 +7,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local GuiService = game:GetService("GuiService")
 local UserInputService = game:GetService("UserInputService")
 
 local Client = script.Parent.Parent
@@ -338,7 +339,49 @@ local TOGGLES: { SettingDef } = {
 	{ key = "reduceFlashing", name = "Reduce flashing", hint = "Softer light flickers and hallucination flashes" },
 	{ key = "departureTimer", name = "Departure timer", hint = "A countdown while you're off the bus" },
 	{ key = "sprintToggle", name = "Toggle sprint", hint = "Tap to sprint instead of holding (always on for touch)" },
+	{ key = "reduceScares", name = "Reduced jumpscares", hint = "Quieter stingers and no camera shake" },
+	{
+		key = "soundIndicators",
+		name = "Sound indicators",
+		hint = "An arrow toward important sounds, with their caption",
+	},
+	{ key = "headBob", name = "Head bob", hint = "Turn off if moving cameras make you feel sick" },
 }
+
+-- A setting stepped with - and + buttons.
+local function stepper(
+	key: string,
+	name: string,
+	hint: string,
+	min: number,
+	max: number,
+	step: number,
+	fmt: (number) -> string,
+	default: number
+)
+	local value = (Settings.get(key) :: number?) or default
+	local function set(v: number)
+		Settings.set(key, math.clamp(math.floor(v / step + 0.5) * step, min, max))
+	end
+	row(nil, `{name}: {fmt(value)}`, hint, {
+		{
+			text = "-",
+			onClick = function()
+				set(value - step)
+			end,
+		},
+		{
+			text = "+",
+			onClick = function()
+				set(value + step)
+			end,
+		},
+	})
+end
+
+local function percent(v: number): string
+	return `{math.floor(v * 100 + 0.5)}%`
+end
 
 local function drawSettings()
 	section("Accessibility and controls")
@@ -354,22 +397,30 @@ local function drawSettings()
 			},
 		})
 	end
-	section("Sound")
-	local volume = (Settings.get("masterVolume") :: number?) or 1
-	row(nil, `Master volume: {math.floor(volume * 100 + 0.5)}%`, "Everything in the game", {
+	section("Camera")
+	stepper("fov", "Field of view", "How wide you see, 70 to 90", 70, 90, 5, function(v)
+		return tostring(math.floor(v + 0.5))
+	end, 70)
+	stepper("sensitivity", "Camera sensitivity", "How fast the mouse turns the camera", 0.2, 3, 0.1, function(v)
+		return string.format("%.1f", v)
+	end, 1)
+	row(nil, "Brightness", "Adjust until the symbol is barely visible", {
 		{
-			text = "-",
+			text = "Calibrate",
 			onClick = function()
-				Settings.set("masterVolume", math.max(0, math.floor(volume * 10 - 1 + 0.5) / 10))
-			end,
-		},
-		{
-			text = "+",
-			onClick = function()
-				Settings.set("masterVolume", math.min(1, math.floor(volume * 10 + 1 + 0.5) / 10))
+				local display = Registry.find("CalibrationController")
+				if display then
+					MenuController.hide()
+					display.show()
+				end
 			end,
 		},
 	})
+	section("Sound")
+	stepper("masterVolume", "Master volume", "Everything in the game", 0, 1, 0.1, percent, 1)
+	stepper("effectsVolume", "Effects volume", "The bus, the stops and everything in them", 0, 1, 0.1, percent, 1)
+	stepper("musicVolume", "Music volume", "Music playing in the world", 0, 1, 0.1, percent, 1)
+	row(nil, "Voice chat volume", "Set in the Roblox menu (Esc), under Settings", {})
 end
 
 local DRAW: { [string]: () -> () } = {
@@ -412,9 +463,16 @@ function MenuController.show(which: string?)
 	screen.Enabled = true
 	closeButton.Modal = true -- frees the mouse in first person
 	redraw()
+	-- A gamepad needs a selected button to move around the menu.
+	if UserInputService:GetLastInputType().Name:find("Gamepad") then
+		GuiService.SelectedObject = tabButtons[tab] or closeButton
+	end
 end
 
 function MenuController.hide()
+	if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(screen) then
+		GuiService.SelectedObject = nil
+	end
 	open = false
 	screen.Enabled = false
 	closeButton.Modal = false
@@ -559,10 +617,16 @@ function MenuController:Start()
 			MenuController.toggle()
 		elseif input.KeyCode == Enum.KeyCode.B then
 			MenuController.wave()
-		elseif input.KeyCode == Enum.KeyCode.Escape and open then
+		elseif (input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.ButtonB) and open then
 			MenuController.hide()
 		end
 	end)
+	local Input = Registry.find("InputController")
+	if Input then
+		Input.on("Menu", function()
+			MenuController.toggle()
+		end)
+	end
 end
 
 return MenuController

@@ -70,6 +70,7 @@ local ACTIONS: { ActionDef } = {
 	{ name = "Slot2", keys = { K.Two }, pad = {} },
 	{ name = "Slot3", keys = { K.Three }, pad = {} },
 	{ name = "Slot4", keys = { K.Four }, pad = {} },
+	{ name = "Menu", keys = {}, pad = {}, touch = "MENU", touchPos = UDim2.new(1, -96, 0, 70) },
 	{ name = "SlotNext", keys = {}, pad = { K.ButtonR1 } },
 	{ name = "SlotPrev", keys = {}, pad = { K.ButtonL1 } },
 }

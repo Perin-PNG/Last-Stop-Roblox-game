@@ -62,6 +62,30 @@ local SETTINGS: { [string]: (any) -> boolean } = {
 	sensitivity = function(v)
 		return Net.isFiniteNumber(v) and v >= 0.2 and v <= 3
 	end,
+	effectsVolume = function(v)
+		return Net.isFiniteNumber(v) and v >= 0 and v <= 1
+	end,
+	musicVolume = function(v)
+		return Net.isFiniteNumber(v) and v >= 0 and v <= 1
+	end,
+	reduceScares = function(v)
+		return type(v) == "boolean"
+	end,
+	soundIndicators = function(v)
+		return type(v) == "boolean"
+	end,
+	headBob = function(v)
+		return type(v) == "boolean"
+	end,
+	fov = function(v)
+		return Net.isFiniteNumber(v) and v >= 70 and v <= 90
+	end,
+	brightness = function(v)
+		return Net.isFiniteNumber(v) and v >= -0.2 and v <= 0.2
+	end,
+	calibrated = function(v)
+		return type(v) == "boolean"
+	end,
 }
 
 local function inLobby(player: Player): boolean

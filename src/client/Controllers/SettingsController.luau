@@ -20,8 +20,19 @@ local values: { [string]: any } = {
 	reduceFlashing = false,
 	departureTimer = true, -- small countdown while off the bus
 	masterVolume = 1,
+	effectsVolume = 1,
+	musicVolume = 1,
 	sprintToggle = false, -- touch defaults to toggle regardless
+	reduceScares = false, -- quieter stingers, no camera shake
+	soundIndicators = false, -- an arrow toward important sounds, with their caption
+	headBob = true,
+	fov = 70, -- 70 to 90
+	sensitivity = 1, -- camera sensitivity, 0.2 to 3
+	brightness = 0, -- -0.2 to 0.2, from the calibration screen
+	calibrated = false,
 }
+
+SettingsController.loaded = false -- the saved settings have arrived
 
 SettingsController.changed = Signal.new()
 
@@ -76,6 +87,8 @@ function SettingsController:Start()
 				apply(key, value)
 			end
 		end
+		SettingsController.loaded = true
+		SettingsController.changed:Fire("loaded", true)
 	end)
 end
 
