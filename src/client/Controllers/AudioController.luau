@@ -131,6 +131,11 @@ function AudioController.play(key: string, part: Instance?, at: Vector3?, loop: 
 			a:Destroy()
 		end)
 	end
+	-- A looped sound needs somewhere to live and die with. If its part hasn't streamed in
+	-- here, skip it rather than loop it flat forever (flat loops are beds, below).
+	if parent == SoundService and (loop == true or (def and def.looped == true)) then
+		return nil
+	end
 	local s = make(key, parent, loop)
 	if not s then
 		return nil
