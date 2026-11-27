@@ -154,6 +154,11 @@ function PlayerStateService.applySpeed(player: Player)
 			speed = MoveTuning.FuelCarry
 		end
 	end
+	-- Wading (Low Water Station's flood) slows everything but Static and the lobby.
+	local wading = player:GetAttribute("Wading")
+	if type(wading) == "number" and s ~= "Static" and s ~= "Lobby" then
+		speed *= math.clamp(wading, 0.3, 1)
+	end
 	humanoid.WalkSpeed = speed
 	humanoid.JumpPower = if s == "Downed" or i.carrying then 0 else MoveTuning.JumpPower
 	player:SetAttribute("Stance", stance)

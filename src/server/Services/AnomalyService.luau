@@ -162,8 +162,9 @@ local function applyOne(built: any, def: AnomalyDef): boolean
 		for _, player in Players:GetPlayers() do
 			table.insert(names, string.upper(player.DisplayName))
 		end
+		local format = if type(params.format) == "string" then params.format else "%s"
 		for i, label in labelsIn(target) do
-			label.Text = names[((i - 1) % math.max(1, #names)) + 1] or "UNIT 9"
+			label.Text = string.format(format, names[((i - 1) % math.max(1, #names)) + 1] or "UNIT 9")
 		end
 	elseif op == "lightOn" then
 		setLights(target, true)
