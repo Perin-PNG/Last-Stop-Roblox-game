@@ -6,6 +6,7 @@
 -- there is a 50% (then 60%) chance that exactly one thing changed. Every other stop rolls
 -- its count from the tier, with a share of Hazards and Lures.
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -171,12 +172,19 @@ local function applyOne(built: any, def: AnomalyDef): boolean
 	elseif op == "lightOff" then
 		setLights(target, false)
 	elseif op == "lightBlink" then
+		-- Each client blinks it locally (FlickerController), slower for Reduce flashing.
+		for _, part in neonIn(target) do
+			if part:GetAttribute("LitColor") == nil then
+				part:SetAttribute("LitColor", part.Color)
+			end
+		end
+		CollectionService:AddTag(target, "Blink")
 		task.spawn(function()
-			local on = true
 			while running(a) do
-				on = not on
-				setLights(target, on)
-				task.wait(if on then 0.08 + math.random() * 0.3 else 0.05 + math.random() * 0.15)
+				task.wait(0.5)
+			end
+			if target.Parent then
+				CollectionService:RemoveTag(target, "Blink")
 			end
 		end)
 	elseif op == "spin" then

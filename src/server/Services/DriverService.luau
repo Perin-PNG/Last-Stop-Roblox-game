@@ -97,14 +97,9 @@ function DriverService.change(delta: number, reason: string, offender: Player?)
 	if crossed(before, after, PTuning.FlickerAt) then
 		DriverService.Threshold:Fire(75)
 		Net.notifyAll("PatienceWarning", { level = 75 })
-		task.spawn(function()
-			for _ = 1, 6 do
-				Bus.setLights(false)
-				task.wait(0.08 + math.random() * 0.12)
-				Bus.setLights(true)
-				task.wait(0.1 + math.random() * 0.2)
-			end
-		end)
+		-- Each client flickers the cabin lights locally (FlickerController), so Reduce
+		-- flashing can soften it.
+		Net.notifyAll("BusFlicker", { count = 6 })
 	end
 	if crossed(before, after, PTuning.OverrideAt) then
 		DriverService.overrideNextVote = true
