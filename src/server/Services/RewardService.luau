@@ -22,6 +22,9 @@ local Tuning = Config.Tuning.Rewards
 
 local RewardService = {}
 
+-- Each player's Tokens from their last run, for the Run Doubler.
+RewardService.lastPayout = {} :: { [Player]: number }
+
 local Data: any
 local Run: any
 local PlayerState: any
@@ -155,6 +158,7 @@ local function payout(player: Player, ending: string, summary: any, players: { P
 		end
 	end)
 	Data.addTokens(player, total, "run")
+	RewardService.lastPayout[player] = total
 	local after = Data.get(player)
 	Net.notify(player, "Rewards", {
 		lines = lines,
@@ -219,6 +223,7 @@ function RewardService:Start()
 	end)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		ledgers[player] = nil
+		RewardService.lastPayout[player] = nil
 	end)
 end
 

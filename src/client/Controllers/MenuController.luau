@@ -1,5 +1,5 @@
 --!strict
--- The rider menu: Kiosk (cosmetics for Tokens), Perks, Collections and Settings.
+-- The rider menu: Kiosk (cosmetics for Tokens), Perks, Journal, Catalog, Route and Settings.
 -- Opened from the depot kiosk, the menu button at the top right, or M / the gamepad's
 -- Select button. Everything shown comes from Player attributes the server sets; every
 -- change is a request the server checks (the Kiosk and Settings remotes).
@@ -8,6 +8,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local GuiService = game:GetService("GuiService")
+local MarketplaceService = game:GetService("MarketplaceService")
 local UserInputService = game:GetService("UserInputService")
 
 local Client = script.Parent.Parent
@@ -36,7 +37,7 @@ local tabButtons: { [string]: TextButton } = {}
 local closeButton: TextButton
 local tab = "Kiosk"
 local open = false
-local TABS = { "Kiosk", "Perks", "Collections", "Settings" }
+local TABS = { "Kiosk", "Perks", "Journal", "Catalog", "Route", "Settings" }
 
 local function me(): Player
 	return Players.LocalPlayer
@@ -143,6 +144,69 @@ end
 
 -- Tabs --------------------------------------------------------------------------------
 
+-- Passes and Robux products: only the ones Perin has created (id not 0).
+local SHOP_PASSES = {
+	{ key = "CommuterPass", name = "Commuter Pass", sub = "+25% Tokens forever and an exclusive jacket" },
+	{ key = "LiveryPack", name = "Livery Pack", sub = "Three bus liveries" },
+	{ key = "VoicePackDispatch", name = "Dispatch voice pack", sub = "Alternate ping voice lines" },
+	{ key = "PolaroidFrames", name = "Polaroid Frames", sub = "Frames for your Evidence photos" },
+}
+local SHOP_PRODUCTS = {
+	{ key = "Tokens500", name = "500 Tokens", sub = "For the kiosk" },
+	{ key = "Tokens1400", name = "1,400 Tokens", sub = "For the kiosk" },
+	{ key = "Tokens3000", name = "3,000 Tokens", sub = "For the kiosk" },
+	{ key = "TipTheDriver", name = "Tip the Driver", sub = "Pure support. He honks the horn, twice." },
+}
+
+local function drawShop()
+	local Products = Config.Products
+	local any = false
+	for _, item in SHOP_PASSES do
+		local id = (Products.Passes :: any)[item.key]
+		if type(id) == "number" and id ~= 0 then
+			if not any then
+				section("Support the game")
+				any = true
+			end
+			local owned = me():GetAttribute(item.key) == true
+			row(
+				nil,
+				item.name,
+				item.sub,
+				if owned
+					then {}
+					else {
+						{
+							text = "Buy",
+							primary = true,
+							onClick = function()
+								MarketplaceService:PromptGamePassPurchase(me(), id)
+							end,
+						},
+					},
+				owned
+			)
+		end
+	end
+	for _, item in SHOP_PRODUCTS do
+		local def = (Products.Products :: any)[item.key]
+		if type(def) == "table" and def.id ~= 0 then
+			if not any then
+				section("Support the game")
+				any = true
+			end
+			row(nil, item.name, item.sub, {
+				{
+					text = "Buy",
+					onClick = function()
+						MarketplaceService:PromptProductPurchase(me(), def.id)
+					end,
+				},
+			})
+		end
+	end
+end
+
 local function drawKiosk()
 	local tokens = (me():GetAttribute("Tokens") :: number?) or 0
 	local owned = csv("CosmeticsOwned")
@@ -228,6 +292,7 @@ local function drawKiosk()
 			row(def.color, def.name, sub, buttons, dim)
 		end
 	end
+	drawShop()
 end
 
 local function drawPerks()
@@ -299,22 +364,12 @@ local function drawPerks()
 	end
 end
 
-local function drawCollections()
+local function drawJournal()
 	local rank = (me():GetAttribute("Rank") :: number?) or 1
 	local xp = (me():GetAttribute("XP") :: number?) or 0
 	local nextXP = (me():GetAttribute("NextRankXP") :: number?) or 0
 	section(`Rank {rank}: {me():GetAttribute("RankTitle") or "Rider"}`)
 	note(if rank >= Config.Tuning.Ranks.MaxRank then `{xp} XP. Top rank.` else `{xp} / {nextXP} XP to the next rank`)
-	local anomalies = #Config.Anomalies.List
-	local stops = 0
-	for _ in Config.Stops.Stops do
-		stops += 1
-	end
-	section("Anomaly Catalog")
-	note(`{me():GetAttribute("CatalogCount") or 0} of {anomalies} anomalies photographed with the Polaroid.`)
-	note("Rewards at 25%, 50% and 100%.")
-	section("Route Map")
-	note(`{me():GetAttribute("StopsVisited") or 0} of {stops} stops visited.`)
 	section("Endings")
 	local seen = csv("EndingsSeen")
 	for _, id in { "Home", "Transfer", "LastStop", "DriversSeat" } do
@@ -327,8 +382,114 @@ local function drawCollections()
 			end
 		end
 	end
+	-- The three Driver clues first, then everything else found on the route.
+	local found = csv("JournalIds")
+	section("The Driver")
+	for _, id in { "clue_locker", "clue_off_duty", "clue_true_channel" } do
+		local entry = Meta.Journal[id]
+		if entry and found[id] then
+			row(Color3.fromRGB(200, 170, 90), entry.title, entry.text, {})
+		elseif entry then
+			row(nil, "Driver Clue: ???", "Somewhere on the route.", {}, true)
+		end
+	end
+	section("Found on the route")
+	local ids = {}
+	for id in found do
+		if Meta.Journal[id] and not id:match("^clue_") then
+			table.insert(ids, id)
+		end
+	end
+	table.sort(ids, function(a, b)
+		return Meta.Journal[a].title < Meta.Journal[b].title
+	end)
+	if #ids == 0 then
+		note("Notes, receipts and flyers you read go here.")
+	end
+	for _, id in ids do
+		local entry = Meta.Journal[id]
+		row(nil, entry.title, entry.text, {})
+	end
 	if me():GetAttribute("DataSaved") == false then
 		note("Progress isn't saving in this server (Studio without API access).", Colors.Danger)
+	end
+end
+
+local function drawCatalog()
+	local found = csv("CatalogIds")
+	local total = #Config.Anomalies.List
+	local count = 0
+	for _ in found do
+		count += 1
+	end
+	section(`Anomaly Catalog: {count} of {total}`)
+	note("Photograph an anomaly with the Polaroid to file it. Rewards at 25%, 50% and 100%.")
+	-- Grouped by stop, in route order.
+	local byStop: { [string]: { any } } = {}
+	local order: { string } = {}
+	for _, def in Config.Anomalies.List do
+		local list = byStop[def.stop]
+		if not list then
+			list = {}
+			byStop[def.stop] = list
+			table.insert(order, def.stop)
+		end
+		table.insert(list, def)
+	end
+	for _, stop in order do
+		local list = byStop[stop]
+		local stopDef = Config.Stops.Stops[stop]
+		local name = if stop == "bus" then "The bus" elseif stopDef then stopDef.name else stop
+		local have = 0
+		for _, def in list do
+			if found[def.id] then
+				have += 1
+			end
+		end
+		section(`{name}  ({have}/{#list})`)
+		for _, def in list do
+			if found[def.id] then
+				row(Colors.Good, def.name, def.report, {})
+			end
+		end
+		if have < #list then
+			note(`{#list - have} not filed yet.`)
+		end
+	end
+end
+
+local function drawRoute()
+	local visited = csv("StopIds")
+	local tierNames = { "Tier 1: the edge of town", "Tier 2: further out", "Tier 3: past the map" }
+	section("Fixed stops")
+	for _, id in { "gas_and_go", "terminal" } do
+		local def = Config.Stops.Stops[id]
+		if def then
+			row(
+				if visited[id] then Colors.Good else nil,
+				if visited[id] then def.name else "???",
+				if visited[id] then def.signature or "" else "Not reached yet.",
+				{},
+				not visited[id]
+			)
+		end
+	end
+	for tier = 1, 3 do
+		local pool: { string } = Config.Stops.Pools[tier] or {}
+		section(tierNames[tier] or `Tier {tier}`)
+		for _, id in pool do
+			local def = Config.Stops.Stops[id]
+			if def then
+				local been = visited[id] == true
+				row(
+					if been then Colors.Good else nil,
+					if been then def.name else "???",
+					if been then def.signature or "" else "Not visited yet.",
+					{},
+					not been
+				)
+			end
+		end
 	end
 end
 
@@ -426,7 +587,9 @@ end
 local DRAW: { [string]: () -> () } = {
 	Kiosk = drawKiosk,
 	Perks = drawPerks,
-	Collections = drawCollections,
+	Journal = drawJournal,
+	Catalog = drawCatalog,
+	Route = drawRoute,
 	Settings = drawSettings,
 }
 
@@ -554,7 +717,7 @@ function MenuController:Init()
 		tabButtons[name] = Gui.button(tabs, name, function()
 			tab = name
 			redraw()
-		end, { Size = UDim2.new(0.25, -5, 1, 0), LayoutOrder = i, MaxText = 15 })
+		end, { Size = UDim2.new(1 / #TABS, -5, 1, 0), LayoutOrder = i, MaxText = 15 })
 	end
 	body = Instance.new("ScrollingFrame")
 	body.Name = "Body"

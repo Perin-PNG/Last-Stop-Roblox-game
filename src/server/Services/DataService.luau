@@ -202,6 +202,20 @@ local function publish(player: Player, data: PlayerData)
 		visited += 1
 	end
 	player:SetAttribute("StopsVisited", visited)
+	-- The id lists the menu's Journal, Catalog and Route Map draw from.
+	local function ids(set: { [string]: any }): string
+		local list = {}
+		for id, v in set do
+			if v then
+				table.insert(list, id)
+			end
+		end
+		table.sort(list)
+		return table.concat(list, ",")
+	end
+	player:SetAttribute("JournalIds", ids(data.journal))
+	player:SetAttribute("CatalogIds", ids(data.catalog))
+	player:SetAttribute("StopIds", ids(data.stopsVisited))
 	local endings = {}
 	for id in data.endings do
 		table.insert(endings, id)
@@ -317,6 +331,24 @@ local function save(player: Player, release: boolean)
 end
 
 -- API ---------------------------------------------------------------------------------
+
+-- Save now (receipts): yields until the save has run. False if it couldn't save.
+function DataService.saveNow(player: Player): boolean
+	if memoryOnly then
+		return true
+	end
+	local session = sessions[player]
+	if not session or session.released then
+		return false
+	end
+	local guard = 0
+	while session.saving and guard < 40 do
+		guard += 1
+		task.wait(0.25)
+	end
+	save(player, false)
+	return not session.released
+end
 
 function DataService.get(player: Player): PlayerData?
 	local session = sessions[player]

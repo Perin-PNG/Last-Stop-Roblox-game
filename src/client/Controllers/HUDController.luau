@@ -5,6 +5,7 @@
 -- overlay, a small departure countdown while off the bus (a setting), the vote reminder,
 -- the stop-name card, and the end-of-run screen.
 
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -481,6 +482,14 @@ local function showRewards(p: any)
 		BackgroundTransparency = 0,
 	})
 	TweenService:Create(fill, TweenInfo.new(1.5, Enum.EasingStyle.Quad), { Size = UDim2.fromScale(share, 1) }):Play()
+	-- The Run Doubler, once Perin has created it.
+	local doubler = Config.Products.Products.RunDoubler.id
+	if doubler ~= 0 and (tonumber(p.total) or 0) > 0 then
+		order += 1
+		Gui.button(box, "Double your Tokens", function()
+			MarketplaceService:PromptProductPurchase(Players.LocalPlayer, doubler)
+		end, { Size = UDim2.new(1, 0, 0, 40), LayoutOrder = order, BackgroundColor3 = Color3.fromRGB(150, 100, 30) })
+	end
 end
 
 function HUDController:Init()

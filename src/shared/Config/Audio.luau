@@ -13,6 +13,7 @@ local S: { [string]: SoundDef } = {
 	DepartureBell = { id = "", volume = 0.8, caption = "Departure bell" },
 	CordDing = { id = "", volume = 0.7, caption = "Ding" },
 	PAChime = { id = "", volume = 0.6 },
+	Horn = { id = "", volume = 0.8, caption = "The bus horn, twice" },
 	RadioStatic = { id = "", volume = 0.4, looped = true },
 	Rain = { id = "", volume = 0.4, looped = true },
 	Knock = { id = "", volume = 0.9, caption = "Knocking on the rear window" },

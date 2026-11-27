@@ -259,7 +259,9 @@ local function lobbyTick()
 		end
 		local matchmaking = Registry.find("MatchmakingService")
 		if Place.role() == "Lobby" and matchmaking then
-			matchmaking.send(group, { mode = "Standard" })
+			-- From a paid private server, the run is a private run.
+			local shop = Registry.find("MonetizationService")
+			matchmaking.send(group, { mode = "Standard", party = shop ~= nil and shop.isPrivate() })
 		else
 			Log.info("Lobby", "Starting a run for", #group)
 			Net.notifyList(group, "Fade", { seconds = 1 })
