@@ -275,6 +275,19 @@ local SlicePlan: { { kind: "fixed" | "vote" | "terminal", tier: number, stop: st
 	{ kind = "terminal", tier = 1, stop = "terminal" },
 }
 
+-- The core route (M2): the first two tiers, three Gas & Go visits, then the Terminal.
+local CorePlan: { { kind: "fixed" | "vote" | "terminal", tier: number, stop: string?, loopCheck: number? } } = {
+	{ kind = "fixed", tier = 1, stop = "gas_and_go" },
+	{ kind = "vote", tier = 1 },
+	{ kind = "vote", tier = 1 },
+	{ kind = "fixed", tier = 1, stop = "gas_and_go", loopCheck = 1 },
+	{ kind = "vote", tier = 2 },
+	{ kind = "vote", tier = 2 },
+	{ kind = "vote", tier = 2 },
+	{ kind = "fixed", tier = 2, stop = "gas_and_go", loopCheck = 2 },
+	{ kind = "terminal", tier = 2, stop = "terminal" },
+}
+
 -- The First Ride tutorial route.
 local TutorialPlan: { { kind: "fixed", tier: number, stop: string, loopCheck: number? } } = {
 	{ kind = "fixed", tier = 1, stop = "gas_and_go" },
@@ -287,6 +300,7 @@ return {
 	Pools = Pools,
 	Plan = Plan,
 	SlicePlan = SlicePlan,
+	CorePlan = CorePlan,
 	TutorialPlan = TutorialPlan,
 	LoopCheckAnomalyChance = { 0.5, 0.6 },
 }

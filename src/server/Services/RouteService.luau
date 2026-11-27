@@ -53,6 +53,8 @@ local function planFor(mode: string?): { Entry }
 	end
 	if Config.Tuning.Run.Plan == "Slice" then
 		return StopsConfig.SlicePlan :: any
+	elseif Config.Tuning.Run.Plan == "Core" then
+		return StopsConfig.CorePlan :: any
 	end
 	return StopsConfig.Plan :: any
 end
@@ -60,6 +62,8 @@ end
 function RouteService.fragmentsNeeded(): number
 	if Config.Tuning.Run.Plan == "Slice" then
 		return Config.Tuning.Run.SliceFragmentsToWin
+	elseif Config.Tuning.Run.Plan == "Core" then
+		return Config.Tuning.Run.CoreFragmentsToWin
 	end
 	return Config.Tuning.Run.FragmentsToWin
 end
@@ -114,7 +118,7 @@ function RouteService.entry(index: number): Entry?
 	if entry then
 		return entry
 	end
-	if Config.Tuning.Run.Plan == "Slice" or RunState:GetAttribute("Mode") == "Tutorial" then
+	if Config.Tuning.Run.Plan ~= "Full" or RunState:GetAttribute("Mode") == "Tutorial" then
 		return nil
 	end
 	-- After stop 11: the Terminal with enough fragments, otherwise overtime.
