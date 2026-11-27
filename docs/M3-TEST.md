@@ -28,7 +28,7 @@ Check: each hint shows once. A second First Ride doesn't repeat them.
 
 ## 3. The full route
 
-Board the 9N for a normal run. All 11 stops, with three route votes per tier. New in M3:
+Board the 9N for a normal run. All 11 stops, with a route vote before most of them. New in M3:
 
 - **Tier 3 stops:** Level P∞ (the parking garage that only goes down), Low Water Station
   (keep moving in the water), the Bus Graveyard (check the route number and the Driver's

@@ -54,7 +54,7 @@ it again.
       isn't a passenger. Reach the Terminal with five fragments and you might see dawn.
 
       - Co-op for 1 to 4 players
-      - A new route every night: 11 stops from 18
+      - A new route every night: 11 stops picked from 16
       - A solo First Ride that teaches the Rules
       - Three endings, and one more you have to find
 
