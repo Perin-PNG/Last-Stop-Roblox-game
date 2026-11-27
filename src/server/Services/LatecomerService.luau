@@ -17,6 +17,7 @@ local Build = require(Shared.Util.Build)
 local Net = require(Shared.Net)
 local Perks = require(Shared.Perks)
 local Log = require(Shared.Log)
+local Signal = require(Shared.Util.Signal)
 
 local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
 
@@ -24,6 +25,9 @@ local Tuning = Config.Tuning.Latecomer
 local StopTuning = Config.Tuning.Stop
 
 local LatecomerService = {}
+
+-- Fired when the Latecomer gets off at the next stop and nobody was Lost while it rode.
+LatecomerService.Survived = Signal.new()
 
 type Walk = {
 	built: any,
@@ -44,6 +48,7 @@ type Walk = {
 local walk: Walk? = nil
 local token = 0
 local boardedSince: number? = nil
+local lostWhileAboard = false
 local nextDown = 0
 
 local Bus: any
@@ -190,6 +195,7 @@ local function board(w: Walk)
 	w.state = "Boarded"
 	clearRig(w)
 	boardedSince = now()
+	lostWhileAboard = false
 	nextDown = now() + Tuning.BoardedDownEvery
 	RunState:SetAttribute("LatecomerAboard", true)
 	Net.notifyAll("Sound", { key = "LatecomerBoard" })
@@ -352,11 +358,20 @@ end
 
 function LatecomerService:Start()
 	RunService.Heartbeat:Connect(step)
+	PlayerState.Lost:Connect(function()
+		if boardedSince then
+			lostWhileAboard = true
+		end
+	end)
 	local director = Registry.find("RunDirector")
 	if director then
 		-- It gets off at the next stop.
 		director.StopOpened:Connect(function()
+			local survived = boardedSince ~= nil and not lostWhileAboard
 			unboard()
+			if survived then
+				LatecomerService.Survived:Fire()
+			end
 		end)
 	end
 	-- Held doors at the door: it waits there and boards the moment they're still open.

@@ -14,6 +14,8 @@ local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
 
 local BadgeService = {}
 
+local LIFER_RANK = 31
+
 local awarded: { [Player]: { [string]: boolean } } = {}
 
 -- Award the badge named `key` (a key of Config.Products.Badges) to `player`.
@@ -81,13 +83,87 @@ function BadgeService:Start()
 	end
 	local data = Registry.find("DataService")
 	if data then
-		-- Lifer: Rank 20.
+		local catalogTotal = 0
+		for _ in Config.Anomalies.ById do
+			catalogTotal += 1
+		end
 		data.Changed:Connect(function(player: Player, d: any)
-			if type(d) == "table" and type(d.rank) == "number" and d.rank >= 20 then
+			if type(d) ~= "table" then
+				return
+			end
+			-- Lifer: Rank 31.
+			if type(d.rank) == "number" and d.rank >= LIFER_RANK then
 				BadgeService.award(player, "Lifer")
+			end
+			-- Inspector: half the Anomaly Catalog photographed.
+			if type(d.catalog) == "table" and catalogTotal > 0 then
+				local n = 0
+				for _ in d.catalog do
+					n += 1
+				end
+				if n >= math.ceil(catalogTotal * 0.5) then
+					BadgeService.award(player, "Inspector")
+				end
 			end
 		end)
 	end
+	-- Eyes Front: a whole run (not the First Ride) without a mirror violation.
+	local mirrorBreakers: { [Player]: boolean } = {}
+	local driver = Registry.find("DriverService")
+	if driver then
+		driver.Violation:Connect(function(player: Player, reason: string)
+			if reason == "mirror" then
+				mirrorBreakers[player] = true
+			end
+		end)
+	end
+	local playerState = Registry.find("PlayerStateService")
+	if director then
+		director.RunStarted:Connect(function()
+			table.clear(mirrorBreakers)
+		end)
+		director.RunEnded:Connect(function(ending: string)
+			if ending == "Tutorial" then
+				return
+			end
+			for _, player in director.runPlayers() do
+				local lost = playerState and playerState.state(player) == "Static"
+				if not mirrorBreakers[player] and not lost then
+					BadgeService.award(player, "EyesFront")
+				end
+			end
+		end)
+	end
+	-- Back From The Between: made it back after being Left Behind.
+	local between = Registry.find("BetweenService")
+	if between then
+		between.Returned:Connect(function(player: Player)
+			BadgeService.award(player, "BackFromTheBetween")
+		end)
+	end
+	-- Not On My Bus: escorted a mimic off.
+	local passengers = Registry.find("PassengerService")
+	if passengers then
+		passengers.Escorted:Connect(function(player: Player, wasMimic: boolean)
+			if wasMimic then
+				BadgeService.award(player, "NotOnMyBus")
+			end
+		end)
+	end
+	-- Late Fee: the Latecomer rode and got off with nobody Lost.
+	local latecomer = Registry.find("LatecomerService")
+	if latecomer and director then
+		latecomer.Survived:Connect(function()
+			for _, player in director.runPlayers() do
+				if not (playerState and playerState.state(player) == "Static") then
+					BadgeService.award(player, "LateFee")
+				end
+			end
+		end)
+	end
+	Players.PlayerRemoving:Connect(function(player: Player)
+		mirrorBreakers[player] = nil
+	end)
 end
 
 return BadgeService

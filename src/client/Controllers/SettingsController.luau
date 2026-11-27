@@ -26,6 +26,7 @@ local values: { [string]: any } = {
 	reduceScares = false, -- quieter stingers, no camera shake
 	soundIndicators = false, -- an arrow toward important sounds, with their caption
 	headBob = true,
+	sharePrompts = true, -- offer to share a screenshot at big moments
 	fov = 70, -- 70 to 90
 	sensitivity = 1, -- camera sensitivity, 0.2 to 3
 	brightness = 0, -- -0.2 to 0.2, from the calibration screen

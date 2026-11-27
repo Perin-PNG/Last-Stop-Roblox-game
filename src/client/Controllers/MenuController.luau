@@ -507,6 +507,7 @@ local TOGGLES: { SettingDef } = {
 		hint = "An arrow toward important sounds, with their caption",
 	},
 	{ key = "headBob", name = "Head bob", hint = "Turn off if moving cameras make you feel sick" },
+	{ key = "sharePrompts", name = "Share prompts", hint = "Offer to share a screenshot after big moments" },
 }
 
 -- A setting stepped with - and + buttons.

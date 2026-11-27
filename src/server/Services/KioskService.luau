@@ -74,6 +74,9 @@ local SETTINGS: { [string]: (any) -> boolean } = {
 	soundIndicators = function(v)
 		return type(v) == "boolean"
 	end,
+	sharePrompts = function(v)
+		return type(v) == "boolean"
+	end,
 	headBob = function(v)
 		return type(v) == "boolean"
 	end,

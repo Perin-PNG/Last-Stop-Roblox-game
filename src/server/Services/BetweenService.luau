@@ -14,6 +14,7 @@ local Build = require(Shared.Util.Build)
 local Seed = require(Shared.Util.Seed)
 local Net = require(Shared.Net)
 local Log = require(Shared.Log)
+local Signal = require(Shared.Util.Signal)
 
 local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
 
@@ -21,6 +22,8 @@ local Tuning = Config.Tuning.Between
 local C = Build.Colors
 
 local BetweenService = {}
+
+BetweenService.Returned = Signal.new() -- (player) made it out of the Between
 
 type Trail = {
 	fromStop: any,
@@ -270,6 +273,7 @@ local function emerge(player: Player, built: any)
 	PlayerState.restore(player)
 	Net.notify(player, "Fade", { seconds = 0.8 })
 	Net.notify(player, "Toast", { text = "You made it. Get to the bus." })
+	BetweenService.Returned:Fire(player)
 end
 
 local function lose(player: Player)
