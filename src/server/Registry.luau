@@ -24,6 +24,7 @@ Registry.Order = {
 	"StopService",
 	"AnomalyService",
 	"PassengerService",
+	"RideEventService",
 	"EntityService",
 	"LatecomerService",
 	"BetweenService",
