@@ -309,6 +309,14 @@ Tuning.Ranks = {
 	SecondPerkAt = 16,
 }
 
+-- Performance budgets from the plan, checked as each stop and the bus are built.
+Tuning.Budget = {
+	PartsPerStop = 4000,
+	PartsInBus = 1500,
+	ShadowLightsPerStop = 12,
+	PathfindingEntities = 3,
+}
+
 Tuning.Lobby = {
 	QueueCountdown = 20,
 	Origin = Vector3.new(-16000, 0, 0),

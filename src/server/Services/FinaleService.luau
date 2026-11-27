@@ -50,7 +50,7 @@ local driveRun: any = nil -- the drive's live state, for remotes and flares
 
 local ROAMERS = { Hunter = true, Listener = true, Watcher = true, Sentry = true }
 local ESCALATE_EVERY = 45 -- seconds of power hunt before another threat joins
-local MAX_ROAMERS = 4
+local MAX_ROAMERS = Config.Tuning.Budget.PathfindingEntities
 local BOARD_SECONDS = 8 -- after someone takes the wheel, the doors close
 local PRY_GRACE = 7 -- seconds to hold a pried door shut
 local CHASER_SPEED = 40

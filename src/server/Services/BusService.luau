@@ -205,6 +205,15 @@ function BusService.spawn(s: number, livery: Color3?)
 		setupPhysics(refs)
 	end
 	Log.info("Bus", "Spawned in", BusService.mode, "mode at s =", s)
+	local parts = 0
+	for _, d in refs.model:GetDescendants() do
+		if d:IsA("BasePart") then
+			parts += 1
+		end
+	end
+	if parts > Config.Tuning.Budget.PartsInBus then
+		Log.warn("Budget", "The bus has", parts, "parts (budget", Config.Tuning.Budget.PartsInBus .. ")")
+	end
 	BusService.Spawned:Fire(refs)
 end
 

@@ -61,6 +61,39 @@ function StopService.hasBuilder(id: string): boolean
 end
 
 -- Build the stop `id` with its curb at the road frame `road`.
+-- Performance budgets (plan): at most 4,000 parts and 12 shadow-casting lights per stop.
+-- Over the light budget, the furthest lights from the curb stop casting shadows. Both
+-- are logged so a builder that grows too big shows up in the Output.
+function StopService.enforceBudget(model: Instance, label: string)
+	local Budget = Config.Tuning.Budget
+	local parts = 0
+	local shadowLights: { Light } = {}
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") then
+			parts += 1
+		elseif d:IsA("Light") and d.Shadows then
+			table.insert(shadowLights, d)
+		end
+	end
+	if #shadowLights > Budget.ShadowLightsPerStop then
+		local origin = if model:IsA("Model") then model:GetPivot().Position else Vector3.zero
+		local function distance(l: Light): number
+			local holder = l.Parent
+			return if holder and holder:IsA("BasePart") then (holder.Position - origin).Magnitude else math.huge
+		end
+		table.sort(shadowLights, function(a, b)
+			return distance(a) < distance(b)
+		end)
+		for i = Budget.ShadowLightsPerStop + 1, #shadowLights do
+			shadowLights[i].Shadows = false
+		end
+		Log.info("Budget", label, "had", #shadowLights, "shadow lights; kept", Budget.ShadowLightsPerStop)
+	end
+	if parts > Budget.PartsPerStop then
+		Log.warn("Budget", label, "has", parts, "parts (budget", Budget.PartsPerStop .. ")")
+	end
+end
+
 function StopService.build(
 	id: string,
 	road: CFrame,
@@ -104,6 +137,7 @@ function StopService.build(
 		art.Parent = refs.model
 	end
 	refs.model:SetAttribute("StopIndex", index)
+	StopService.enforceBudget(refs.model, id)
 	local built: BuiltStop = {
 		id = id,
 		refs = refs,

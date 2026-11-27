@@ -917,7 +917,7 @@ local function spawnGroup(built: any, threatId: string, at: CFrame?, telegraph: 
 	end
 	local override = built.refs.extras.entityCount
 	if type(override) == "number" then
-		count = math.clamp(math.floor(override), 1, 8)
+		count = math.clamp(math.floor(override), 1, Config.Tuning.Budget.PathfindingEntities)
 	end
 	local out: { Entity } = {}
 	for i = 1, count do
