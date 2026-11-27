@@ -13,9 +13,33 @@
         ]
       }
     },
-    "Color": [1, 0.2, 0.2],
+    "Color": [0.2, 1, 0.2],
     "Material": "Neon",
     "TopSurface": "Smooth",
     "BottomSurface": "Smooth"
-  }
+  },
+  "children": [
+    {
+      "name": "BlueBlock",
+      "className": "Part",
+      "properties": {
+        "Anchored": true,
+        "Size": [8, 8, 8],
+        "CFrame": {
+          "CFrame": {
+            "position": [12, 4, 0],
+            "orientation": [
+              [1, 0, 0],
+              [0, 1, 0],
+              [0, 0, 1]
+            ]
+          }
+        },
+        "Color": [0.2, 0.4, 1],
+        "Material": "Neon",
+        "TopSurface": "Smooth",
+        "BottomSurface": "Smooth"
+      }
+    }
+  ]
 }
