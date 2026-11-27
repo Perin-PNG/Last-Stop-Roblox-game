@@ -64,6 +64,49 @@ local function pullAway()
 	end)
 end
 
+-- Keep riders with the bus while they are in the air. On the ground, floor friction carries
+-- a player along with the moving bus; in a jump the Humanoid's air control steers toward
+-- a world-space speed and bleeds off the bus's speed, so the bus drives on without them.
+-- While airborne inside the cabin we move the character with the bus's own motion each
+-- frame and keep their physical velocity relative to the bus, then hand the bus's
+-- velocity back when they land (or leave the cabin mid-air).
+local lastBusCf: CFrame? = nil
+local carried = false
+
+local function rideStep()
+	local floor = State.busPart("Floor")
+	local character = State.character()
+	local root = State.root()
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not floor or not root or not humanoid or root.Anchored then
+		lastBusCf = nil
+		carried = false
+		return
+	end
+	local busCf = floor.CFrame
+	local busVel = floor.AssemblyLinearVelocity
+	local flat = Vector3.new(busVel.X, 0, busVel.Z)
+	local inside = State.insideBus(root.Position)
+	local airborne = humanoid.FloorMaterial == Enum.Material.Air
+		and not humanoid.Sit
+		and humanoid:GetState() ~= Enum.HumanoidStateType.Climbing
+	if inside and airborne and lastBusCf then
+		if not carried then
+			-- Take-off: make the velocity relative to the bus.
+			root.AssemblyLinearVelocity -= flat
+			carried = true
+		end
+		-- Move (and turn) the character exactly as the bus moved since last frame.
+		local delta = busCf * (lastBusCf :: CFrame):Inverse()
+		root.CFrame = delta * root.CFrame
+	elseif carried then
+		-- Landed, or left the cabin in the air: give the bus's speed back.
+		root.AssemblyLinearVelocity += flat
+		carried = false
+	end
+	lastBusCf = busCf
+end
+
 function BusController:Init()
 	local sg = Gui.screen("Fade", 50, true)
 	fade = Gui.frame(sg, {
@@ -83,6 +126,7 @@ function BusController:Start()
 	Notify.on("BusLeaving", function()
 		pullAway()
 	end)
+	RunService.PreSimulation:Connect(rideStep)
 	-- If a seat in the moving bus won't let go, jumping asks the server to stand us up.
 	local UserInputService = game:GetService("UserInputService")
 	UserInputService.JumpRequest:Connect(function()
