@@ -1,0 +1,16 @@
+# Wally packages (reinstall with `wally install`)
+Packages/*
+!Packages/.gitkeep
+ServerPackages/
+
+# Generated
+sourcemap.json
+*.rbxl.lock
+*.rbxlx.lock
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json

@@ -1,0 +1,6 @@
+std = "roblox"
+
+[lints]
+# Unused variables starting with _ are fine.
+unused_variable = "warn"
+shadowing = "allow"
