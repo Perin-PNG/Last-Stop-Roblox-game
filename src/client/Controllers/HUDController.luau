@@ -48,6 +48,9 @@ local progressLabel: TextLabel
 local endFrame: Frame
 local crosshair: Frame
 local dropButton: TextButton
+local noteFrame: Frame
+local noteTitle: TextLabel
+local noteText: TextLabel
 
 local seenHints: { [string]: boolean } = {}
 
@@ -516,6 +519,54 @@ function HUDController:Init()
 	Gui.stroke(hintFrame, Colors.Accent, 1)
 	hintLabel =
 		Gui.label(hintFrame, "", { Size = UDim2.new(1, -16, 1, -8), Position = UDim2.fromOffset(8, 4), MaxText = 17 })
+	-- A lore note, read from the world: paper, handwriting, gone after a while or a click.
+	noteFrame = Gui.frame(root, {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.42),
+		Size = UDim2.fromOffset(380, 200),
+		BackgroundColor3 = Color3.fromRGB(226, 218, 190),
+		BackgroundTransparency = 0.05,
+		Visible = false,
+	})
+	Gui.corner(noteFrame, 4)
+	local noteSize = Instance.new("UISizeConstraint")
+	noteSize.MaxSize = Vector2.new(420, 240)
+	noteSize.Parent = noteFrame
+	noteTitle = Gui.label(noteFrame, "", {
+		Size = UDim2.new(1, -24, 0, 26),
+		Position = UDim2.fromOffset(12, 10),
+		Font = Enum.Font.SpecialElite,
+		TextColor3 = Color3.fromRGB(70, 30, 30),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		MaxText = 20,
+	})
+	noteText = Gui.label(noteFrame, "", {
+		Size = UDim2.new(1, -24, 1, -70),
+		Position = UDim2.fromOffset(12, 40),
+		Font = Enum.Font.IndieFlower,
+		TextColor3 = Color3.fromRGB(30, 30, 50),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		TextWrapped = true,
+		MaxText = 22,
+	})
+	local noteHint = Gui.label(noteFrame, "Added to your Journal", {
+		Size = UDim2.new(1, -24, 0, 18),
+		Position = UDim2.new(0, 12, 1, -26),
+		TextColor3 = Color3.fromRGB(110, 100, 80),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		MaxText = 13,
+	})
+	noteHint.Name = "NoteHint"
+	local closeNote = Instance.new("TextButton")
+	closeNote.BackgroundTransparency = 1
+	closeNote.Text = ""
+	closeNote.Size = UDim2.fromScale(1, 1)
+	closeNote.ZIndex = 5
+	closeNote.Parent = noteFrame
+	closeNote.Activated:Connect(function()
+		noteFrame.Visible = false
+	end)
 	timerLabel = Gui.label(root, "", {
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.new(0.5, 0, 0, 12),
@@ -647,6 +698,26 @@ function HUDController:Start()
 				if isTrue then 8 else 5
 			)
 		end
+	end)
+	local noteToken = 0
+	Notify.on("Lore", function(p: any)
+		if type(p) ~= "table" or type(p.title) ~= "string" or type(p.text) ~= "string" then
+			return
+		end
+		noteToken += 1
+		local mine = noteToken
+		noteTitle.Text = p.title
+		noteText.Text = p.text
+		local hint = noteFrame:FindFirstChild("NoteHint") :: TextLabel?
+		if hint then
+			hint.Text = if p.new then "New Journal entry" else "Already in your Journal"
+		end
+		noteFrame.Visible = true
+		task.delay(10, function()
+			if noteToken == mine then
+				noteFrame.Visible = false
+			end
+		end)
 	end)
 	Notify.on("Caption", function(p: any)
 		if type(p) == "table" and type(p.text) == "string" then

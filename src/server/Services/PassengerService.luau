@@ -353,6 +353,12 @@ local function askTicket(p: Passenger, player: Player)
 	end
 	Net.notify(player, "Toast", { text = ticketText(p) })
 	say(p, lineFor(p, player))
+	if p.def.id == "off_duty" and not p.mimic then
+		local journal = Registry.find("JournalService")
+		if journal then
+			journal.offDutyTalk(player)
+		end
+	end
 end
 
 local function addPrompts(p: Passenger, waiting: boolean)

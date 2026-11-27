@@ -32,6 +32,7 @@ Registry.Order = {
 	"PhotoService",
 	"GhostService",
 	"RewardService",
+	"JournalService",
 	"MonetizationService",
 	"BadgeService",
 	"FinaleService",

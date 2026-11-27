@@ -321,6 +321,24 @@ return function(parent: Instance, frame: CFrame, ctx: StopKit.Ctx, title: string
 	end
 	if driverDoor then
 		StopKit.slot(refs, "locker", driverDoor)
+		-- Locker 9 opens. Inside: the Driver's badge, and a clue.
+		local doorPart = driverDoor:FindFirstChild("LockerDoor") :: BasePart?
+		if doorPart then
+			local prompt = StopKit.openable(doorPart, "Open", "Locker 9", 1)
+			local opened = false
+			prompt.Triggered:Connect(function(player: Player)
+				local journal = Registry.find("JournalService")
+				if journal then
+					journal.read(player, "depot_locker", doorPart.Position)
+					journal.read(player, "clue_locker", doorPart.Position)
+				end
+				if not opened and driverDoor.Parent then
+					opened = true
+					driverDoor:PivotTo(driverDoor:GetPivot() * CFrame.Angles(0, math.rad(-100), 0))
+					Net.notifyAll("Sound", { key = "DoorCreak", part = doorPart })
+				end
+			end)
+		end
 	end
 
 	-- The diesel pump in the yard: hold to fill a can, and it's loud.

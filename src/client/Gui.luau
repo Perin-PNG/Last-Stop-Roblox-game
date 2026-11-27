@@ -77,7 +77,9 @@ function Gui.label(parent: Instance, text: string, props: { [string]: any }?): T
 	l.Size = UDim2.fromScale(1, 1)
 	if props then
 		for k, v in props do
-			(l :: any)[k] = v
+			if k ~= "MaxText" then
+				(l :: any)[k] = v
+			end
 		end
 	end
 	local maxSize = (props and props.MaxText) or 28

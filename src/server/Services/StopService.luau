@@ -91,6 +91,12 @@ function StopService.build(
 		Log.warn("Stops", "Builder error for", id, result)
 		refs = require(StopBuilders:WaitForChild("generic"))(World.Folders.Stops, frame, ctx, title)
 	end
+	-- Every stop holds one lore note. Builders hide theirs; the rest pin it in the shelter.
+	local journal = Registry.find("JournalService")
+	local loreId = journal and journal.LORE[id]
+	if loreId and not refs.extras.lore and id ~= "depot" and refs.shelter then
+		StopKit.lore(refs, loreId, CFrame.new(9.05, 5.6, -12.2), true)
+	end
 	if custom and custom:IsA("Model") then
 		-- Art model: placed by its PrimaryPart at the curb point, on top of the blockout.
 		local art = custom:Clone()

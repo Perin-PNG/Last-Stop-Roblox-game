@@ -350,6 +350,48 @@ function StopKit.fragmentSite(refs: StopRefs, pos: Vector3): BasePart
 	return p
 end
 
+-- A lore note: a folded sheet with a Read prompt that puts a Journal entry in. `cf` is in
+-- the stop frame; the sheet lies flat unless `upright` (pinned to a wall facing -X).
+function StopKit.lore(refs: StopRefs, id: string, cf: CFrame, upright: boolean?): BasePart
+	local sheet = StopKit.part(refs, {
+		name = "LoreNote",
+		size = if upright then Vector3.new(0.05, 1.3, 1) else Vector3.new(1, 0.05, 1.3),
+		cf = cf,
+		color = Color3.fromRGB(226, 218, 190),
+		material = Enum.Material.SmoothPlastic,
+		collide = false,
+		attrs = { Lore = id },
+	})
+	-- A few lines of scrawl on the face, so it reads as writing from a step away.
+	local surface = Instance.new("SurfaceGui")
+	surface.Face = if upright then Enum.NormalId.Left else Enum.NormalId.Top
+	surface.CanvasSize = Vector2.new(100, 130)
+	surface.LightInfluence = 1
+	surface.Parent = sheet
+	local ink = Instance.new("TextLabel")
+	ink.BackgroundTransparency = 1
+	ink.Size = UDim2.fromScale(1, 1)
+	ink.Font = Enum.Font.IndieFlower
+	ink.TextScaled = true
+	ink.TextWrapped = true
+	ink.TextColor3 = Color3.fromRGB(40, 40, 60)
+	ink.Text = "~~~ ~~ ~~~~\n~~ ~~~~ ~\n~~~~ ~~ ~~"
+	ink.Parent = surface
+	local glint = Instance.new("PointLight")
+	glint.Color = Color3.fromRGB(255, 240, 200)
+	glint.Brightness = 0.25
+	glint.Range = 4
+	glint.Shadows = false
+	glint.Parent = sheet
+	refs.extras.lore = sheet
+	local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
+	local journal = Registry.find("JournalService")
+	if journal then
+		journal.attach(sheet, id)
+	end
+	return sheet
+end
+
 function StopKit.marker(refs: StopRefs, name: string, cf: CFrame): BasePart
 	return StopKit.part(refs, {
 		name = name,
