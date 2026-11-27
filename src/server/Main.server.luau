@@ -10,6 +10,7 @@ local Log = require(Shared:WaitForChild("Log"))
 local Registry = require(script.Parent:WaitForChild("Registry"))
 
 Net.setup()
+game:GetService("Players").PlayerRemoving:Connect(Net.forget)
 
 local folder = script.Parent:WaitForChild("Services")
 local loaded: { { name: string, service: any } } = {}

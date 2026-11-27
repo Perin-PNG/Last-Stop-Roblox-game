@@ -43,6 +43,8 @@ local Net = {}
 
 -- Counts of dropped calls per player, for kicking only extreme abusers.
 local dropped: { [Player]: number } = {}
+local droppedSince: { [Player]: number } = {}
+local limiters: { any } = {}
 Net.KickAfterDropped = 600
 
 local function getFolder(): Folder
@@ -92,6 +94,7 @@ function Net.on(name: string, handler: (player: Player, ...any) -> ()): RBXScrip
 	local def = REMOTES[name]
 	assert(def, "Unknown remote " .. name)
 	local limiter = RateLimiter.new(def.rate, def.burst)
+	table.insert(limiters, limiter)
 	local remote = getFolder():WaitForChild(name)
 	local signal: RBXScriptSignal = (remote :: any).OnServerEvent
 	return signal:Connect(function(player: Player, ...)
@@ -107,6 +110,12 @@ function Net.on(name: string, handler: (player: Player, ...any) -> ()): RBXScrip
 end
 
 function Net.drop(player: Player)
+	-- Counted per minute, so a long session of the odd over-eager click never adds up.
+	local now = os.clock()
+	if now - (droppedSince[player] or 0) > 60 then
+		droppedSince[player] = now
+		dropped[player] = 0
+	end
 	local count = (dropped[player] or 0) + 1
 	dropped[player] = count
 	if count >= Net.KickAfterDropped then
@@ -116,6 +125,10 @@ end
 
 function Net.forget(player: Player)
 	dropped[player] = nil
+	droppedSince[player] = nil
+	for _, limiter in limiters do
+		limiter:forget(player)
+	end
 end
 
 -- Server -> client helpers.
