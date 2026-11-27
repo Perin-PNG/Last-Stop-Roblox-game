@@ -106,7 +106,7 @@ local Items: { [string]: ItemDef } = {
 		use = "photo",
 		color = Color3.fromRGB(235, 235, 235),
 		size = Vector3.new(1.1, 0.8, 0.7),
-		description = "Three shots of film. Reveals mimics and logs Evidence.",
+		description = "Three shots of film. Logs Evidence, and some mimics can't hide from it.",
 	},
 	medkit = {
 		id = "medkit",
