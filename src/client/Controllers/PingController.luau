@@ -183,8 +183,29 @@ local function showMarker(userId: number, id: number, pos: Vector3, ghost: boole
 		BackgroundColor3 = color,
 		BackgroundTransparency = if ghost then 0.5 else 0.1,
 	})
-	Gui.corner(icon, 20)
-	Gui.label(icon, ping.icon, { Font = Gui.FontBold, TextColor3 = Color3.new(0, 0, 0), MaxText = 24 })
+	-- Each ping has its own marker shape as well as its icon, so colour is never the
+	-- only difference (plan, accessibility).
+	local shape = (ping :: any).shape
+	local glyph = Gui.label(icon, ping.icon, { Font = Gui.FontBold, TextColor3 = Color3.new(0, 0, 0), MaxText = 24 })
+	if shape == "circle" then
+		Gui.corner(icon, 20)
+	elseif shape == "diamond" then
+		icon.Rotation = 45
+		icon.Size = UDim2.fromOffset(34, 34)
+		glyph.Rotation = -45
+	elseif shape == "hex" or shape == "split" then
+		Gui.corner(icon, 10)
+	elseif shape == "triangle" or shape == "arrow" then
+		Gui.corner(icon, 4)
+		local edge = Instance.new("UIStroke")
+		edge.Thickness = 3
+		edge.Color = Color3.new(0, 0, 0)
+		edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		edge.Parent = icon
+	elseif shape == "cross" then
+		Gui.corner(icon, 2)
+		icon.Size = UDim2.fromOffset(40, 28)
+	end -- square: no rounding
 	local text = Gui.label(bb, ping.text, {
 		Size = UDim2.new(1, 0, 0, 18),
 		Position = UDim2.fromOffset(0, 42),
