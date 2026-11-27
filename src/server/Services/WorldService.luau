@@ -85,6 +85,25 @@ local function setupLighting()
 	grade.Saturation = -0.25
 	grade.Contrast = 0.12
 	grade.TintColor = Color3.fromRGB(235, 240, 255)
+
+	-- A soft bloom so neon tubes, lamps and signs glow in the fog, and a starless night sky.
+	if not Lighting:FindFirstChild("Glow") then
+		local bloom = Instance.new("BloomEffect")
+		bloom.Name = "Glow"
+		bloom.Intensity = 0.6
+		bloom.Size = 30
+		bloom.Threshold = 1.6
+		bloom.Parent = Lighting
+	end
+	if not Lighting:FindFirstChildOfClass("Sky") then
+		local sky = Instance.new("Sky")
+		sky.Name = "NightSky"
+		sky.StarCount = 400
+		sky.CelestialBodiesShown = false
+		sky.MoonAngularSize = 0
+		sky.Parent = Lighting
+	end
+	Lighting.EnvironmentDiffuseScale = 0.25
 end
 
 local function setupCharacter(character: Model)

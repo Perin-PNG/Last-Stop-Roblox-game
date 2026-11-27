@@ -24,3 +24,19 @@ device. Tick them off as you go. Newest milestone at the bottom.
       `src/shared/Config/Products.luau` (`Places.Lobby`, `Places.Route`), or send them to
       Claude. Until then the game runs lobby and run in one server, which is what you want
       in Studio.
+
+## M1: the vertical slice
+
+- [ ] **Lighting technology.** Select Lighting and set **Technology** to **Future** (scripts
+      can't set it). Neon tubes, lamps and the lit shelter ads look much better with it.
+- [ ] **Sounds.** Every sound key is listed in `src/shared/Config/Audio.luau` with an empty
+      id. Pick licensed sounds in the Creator Store (Toolbox > Audio) or upload your own,
+      and paste each id as `"rbxassetid://123"`, or send the ids to Claude. Until then the
+      game shows a caption for every sound instead. The ones that matter most for M1:
+      DieselHum, DoorHiss, DepartureBell, CordDing, PAChime, FarBell, LightPop, Knock,
+      DryerThump, DryerBurst, EntitySpotted, Caught, LatecomerBoard, RadioStatic, Heartbeat,
+      PingBlip, Sting.
+- [ ] **Voice as noise (optional).** Game Settings > Communication: turn on voice chat and
+      "Use audio API" if you want spoken noise to attract entities. It works without.
+- [ ] **The M1 playtest** (see `docs/M1-TEST.md`): a full run of the slice, solo and with
+      friends, on PC and on a phone.
