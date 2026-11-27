@@ -547,6 +547,145 @@ function StopKit.box(
 	}, parent)
 end
 
+export type FigureOpts = { skin: Color3?, pants: Color3?, height: number?, apron: Color3? }
+
+-- A blocky, faceless standing figure (clerks, Rosie, regulars). `cf` is the floor point
+-- under the figure, facing -Z. Returns the model; its PrimaryPart is the torso.
+function StopKit.figure(
+	refs: StopRefs,
+	name: string,
+	cf: CFrame,
+	shirt: Color3,
+	parent: Instance?,
+	opts: FigureOpts?
+): Model
+	local o: FigureOpts = opts or {}
+	local h = o.height or 1
+	local skin = o.skin or Color3.fromRGB(196, 168, 140)
+	local pants = o.pants or Color3.fromRGB(40, 40, 46)
+	local m = Build.model(parent or refs.model, name)
+	local function piece(pname: string, size: Vector3, offset: CFrame, color: Color3, material: Enum.Material?): Part
+		return StopKit.part(refs, {
+			name = pname,
+			size = size * h,
+			cf = cf * CFrame.new(offset.Position * h) * offset.Rotation,
+			color = color,
+			material = material or Enum.Material.SmoothPlastic,
+			collide = false,
+			query = true,
+		}, m)
+	end
+	for _, side in { -0.5, 0.5 } do
+		piece("Leg", Vector3.new(0.9, 2.6, 0.9), CFrame.new(side, 1.3, 0), pants, Enum.Material.Fabric)
+		piece("Arm", Vector3.new(0.8, 2.4, 0.8), CFrame.new(side * 3.4, 3.9, 0), shirt, Enum.Material.Fabric)
+		piece("Hand", Vector3.new(0.7, 0.6, 0.7), CFrame.new(side * 3.4, 2.5, 0), skin)
+	end
+	local torso = piece("Torso", Vector3.new(2.2, 2.6, 1.1), CFrame.new(0, 3.9, 0), shirt, Enum.Material.Fabric)
+	if o.apron then
+		piece("Apron", Vector3.new(1.9, 2.4, 0.1), CFrame.new(0, 3.5, -0.6), o.apron, Enum.Material.Fabric)
+	end
+	piece("Neck", Vector3.new(0.6, 0.4, 0.6), CFrame.new(0, 5.35, 0), skin)
+	local head = piece("Head", Vector3.new(1.3, 1.5, 1.3), CFrame.new(0, 6.3, 0), skin)
+	head.Shape = Enum.PartType.Block
+	local mesh = Instance.new("SpecialMesh")
+	mesh.MeshType = Enum.MeshType.Head
+	mesh.Scale = Vector3.new(1.05, 1, 1.05)
+	mesh.Parent = head
+	piece("Hair", Vector3.new(1.4, 0.5, 1.4), CFrame.new(0, 7.0, 0.05), Color3.fromRGB(40, 30, 24))
+	m.PrimaryPart = torso
+	return m
+end
+
+-- A parked sedan, nose toward -Z. `cf` is the ground point under its middle.
+function StopKit.car(refs: StopRefs, name: string, cf: CFrame, color: Color3, parent: Instance?): Model
+	local m = Build.model(parent or refs.model, name)
+	local function piece(
+		pname: string,
+		size: Vector3,
+		offset: Vector3,
+		c: Color3,
+		material: Enum.Material?,
+		extra: any?
+	): Part
+		local props: Build.PartProps = {
+			name = pname,
+			size = size,
+			cf = cf * CFrame.new(offset),
+			color = c,
+			material = material or Enum.Material.SmoothPlastic,
+		}
+		if extra then
+			for k, v in extra do
+				(props :: any)[k] = v
+			end
+		end
+		return StopKit.part(refs, props, m)
+	end
+	local body = piece("Body", Vector3.new(6.4, 2.2, 15), Vector3.new(0, 2.1, 0), color, Enum.Material.SmoothPlastic)
+	body.Reflectance = 0.08
+	piece("Cabin", Vector3.new(5.8, 2, 7.4), Vector3.new(0, 4.2, 0.8), color)
+	piece("Windshield", Vector3.new(5.6, 1.8, 0.2), Vector3.new(0, 4.2, -3.0), C.Glass, Enum.Material.Glass, {
+		transparency = 0.35,
+	})
+	piece("RearWindow", Vector3.new(5.6, 1.7, 0.2), Vector3.new(0, 4.2, 4.6), C.Glass, Enum.Material.Glass, {
+		transparency = 0.35,
+	})
+	for _, side in { -1, 1 } do
+		piece(
+			"SideWindow",
+			Vector3.new(0.2, 1.5, 6.6),
+			Vector3.new(side * 2.95, 4.25, 0.8),
+			C.Glass,
+			Enum.Material.Glass,
+			{
+				transparency = 0.4,
+				collide = false,
+			}
+		)
+		for _, z in { -4.8, 4.6 } do
+			local wheel = piece(
+				"Wheel",
+				Vector3.new(1.1, 2.6, 2.6),
+				Vector3.new(side * 2.9, 1.3, z),
+				C.Black,
+				Enum.Material.Rubber
+			)
+			wheel.Shape = Enum.PartType.Cylinder
+		end
+		local head = piece(
+			"Headlight",
+			Vector3.new(1.3, 0.6, 0.2),
+			Vector3.new(side * 2.1, 2.4, -7.55),
+			C.White,
+			Enum.Material.Glass,
+			{
+				collide = false,
+			}
+		)
+		local _ = head
+		piece(
+			"Taillight",
+			Vector3.new(1.3, 0.5, 0.2),
+			Vector3.new(side * 2.1, 2.5, 7.55),
+			Color3.fromRGB(120, 20, 20),
+			Enum.Material.Neon,
+			{
+				collide = false,
+			}
+		)
+	end
+	piece("Plate", Vector3.new(2, 0.6, 0.1), Vector3.new(0, 1.6, 7.55), Color3.fromRGB(230, 230, 210), nil, {
+		collide = false,
+	})
+	m.PrimaryPart = body
+	return m
+end
+
+-- A door, cabinet or bin a player can open with a prompt. Returns the prompt.
+function StopKit.openable(part: BasePart, action: string, object: string?, hold: number?): ProximityPrompt
+	return Build.prompt(part, action, object, hold or 0.4, 7, "OpenPrompt")
+end
+
 -- The default pieces almost every stop wants.
 function StopKit.basics(refs: StopRefs, title: string, lotDepth: number, z0: number, z1: number)
 	StopKit.lot(refs, lotDepth, z0, z1)

@@ -196,8 +196,23 @@ function StopService.stock(stop: BuiltStop, players: number, stalled: boolean?)
 	end
 end
 
+-- The doors opened: start the stop's own runtime (dryers counting down and the like).
+function StopService.activate(stop: BuiltStop, deadline: number)
+	local fn = stop.refs.extras.activate
+	if fn then
+		local ok, err = pcall(fn, stop, deadline)
+		if not ok then
+			Log.warn("Stops", "activate failed for", stop.id, err)
+		end
+	end
+end
+
 function StopService.deactivate(stop: BuiltStop)
 	stop.active = false
+	local fn = stop.refs.extras.deactivate
+	if fn then
+		pcall(fn, stop)
+	end
 end
 
 function StopService.clearAll()

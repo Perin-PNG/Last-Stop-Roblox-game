@@ -340,6 +340,7 @@ local function runStop(built: any, token: number)
 		eject(ejected, built)
 		Driver.afterEject()
 	end
+	Stops.activate(built, deadline)
 	RunDirector.StopOpened:Fire(built, deadline)
 	local latecomer = find("LatecomerService")
 	if latecomer and not built.terminal then
