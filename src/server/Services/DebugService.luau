@@ -47,6 +47,18 @@ function DebugService:Init()
 			data.addTokens(player, 500, "debug")
 		end
 	end)
+	DebugService.register("firstride", function(player: Player)
+		local data = Registry.find("DataService")
+		if not data then
+			return
+		end
+		data.update(player, function(d: any)
+			d.tutorialDone = false
+			d.hints = {}
+		end)
+		Net.notify(player, "HintsSeen", { ids = {} })
+		Net.notify(player, "OfferFirstRide", {})
+	end)
 	DebugService.register("tobus", function(player: Player)
 		local director = Registry.find("RunDirector")
 		if director and player.Character then

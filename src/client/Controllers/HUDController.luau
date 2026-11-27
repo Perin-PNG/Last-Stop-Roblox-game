@@ -695,6 +695,7 @@ function HUDController:Start()
 	end)
 	Notify.on("HintsSeen", function(p: any)
 		if type(p) == "table" and type(p.ids) == "table" then
+			table.clear(seenHints)
 			for _, id in p.ids do
 				if type(id) == "string" then
 					seenHints[id] = true

@@ -4,7 +4,7 @@
 stops reaches the Terminal and plays the finale to one of the three good endings.
 
 Before you start: API access on (see STUDIO-TODO). To see the First Ride offer again, use
-a fresh test account, or reset your data from the debug panel (**DBG** or F8).
+a fresh test account, or press **Reset First Ride and hints** in the debug panel (**DBG** or F8).
 
 ## 1. First launch
 
