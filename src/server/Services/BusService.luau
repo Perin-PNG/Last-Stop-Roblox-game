@@ -270,6 +270,7 @@ function BusService.setLights(on: boolean, bank: number?)
 	end
 	if bank == nil then
 		BusService.lightsOn = on
+		refs.model:SetAttribute("LightsOn", on)
 	end
 end
 

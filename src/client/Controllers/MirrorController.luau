@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local Client = script.Parent.Parent
+local Registry = require(Client:WaitForChild("Registry"))
 local State = require(Client:WaitForChild("State"))
 local Notify = require(Client:WaitForChild("Notify"))
 local Gui = require(Client:WaitForChild("Gui"))
@@ -31,6 +32,10 @@ type Face = {
 }
 
 local face: Face? = nil
+-- Silhouettes of the passengers behind you, as the mirror shows them: a regular as a
+-- plain head and shoulders, a mimic as what it really is (tall, thin, red points for eyes).
+type Figure = { body: Frame, head: Frame, eyes: { Frame } }
+local figures: { Figure } = {}
 local turn = 0
 local flash: Frame
 
@@ -141,6 +146,96 @@ local function clear()
 		face.gui:Destroy()
 		face = nil
 	end
+	table.clear(figures)
+end
+
+local function figureAt(fc: Face, i: number): Figure
+	local existing = figures[i]
+	if existing then
+		return existing
+	end
+	local body = f(fc.gui, {
+		Name = "Rider" .. i,
+		AnchorPoint = Vector2.new(0.5, 1),
+		BackgroundColor3 = Color3.fromRGB(60, 62, 60),
+		BackgroundTransparency = 0.45,
+		ZIndex = 0,
+	})
+	round(body, 0.35)
+	local head = f(body, {
+		Name = "Head",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.fromScale(0.5, 0),
+		BackgroundColor3 = Color3.fromRGB(70, 72, 70),
+		BackgroundTransparency = 0.35,
+		ZIndex = 0,
+	})
+	round(head, 0.5)
+	local eyes = {}
+	for _, x in { 0.35, 0.65 } do
+		local eye = f(head, {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.fromScale(0.14, 0.08),
+			Position = UDim2.fromScale(x, 0.4),
+			BackgroundColor3 = Color3.fromRGB(255, 50, 40),
+			ZIndex = 1,
+		})
+		round(eye, 0.5)
+		table.insert(eyes, eye)
+	end
+	local made: Figure = { body = body, head = head, eyes = eyes }
+	figures[i] = made
+	return made
+end
+
+local function riders(fc: Face)
+	local interior = State.busPart("Interior")
+	local pc = Registry.find("PassengerController")
+	local list: { Model } = if pc and interior then pc.models() else {}
+	local shown = 0
+	for _, m in list do
+		local part = m.PrimaryPart
+		if not part or not interior or not State.insideBus(part.Position) then
+			continue
+		end
+		shown += 1
+		local fig = figureAt(fc, shown)
+		local rel = interior.CFrame:PointToObjectSpace(part.Position)
+		local half = interior.Size.Z / 2
+		local back = math.clamp((rel.Z + half) / interior.Size.Z, 0, 1)
+		local mirrorDir = if interior.CFrame:PointToObjectSpace(fc.mirror.Position).Z > 0 then -1 else 1
+		local depth = if mirrorDir > 0 then back else 1 - back
+		local scale = 1 - 0.55 * depth
+		local x = 0.66 + math.clamp(-rel.X / interior.Size.X, -0.5, 0.5) * 0.5
+		local wrong = m:GetAttribute("TrueShape") == true
+		fig.body.Visible = true
+		fig.body.Position = UDim2.fromScale(x, 1)
+		if wrong then
+			fig.body.Size = UDim2.fromOffset(18 * scale, 86 * scale)
+			fig.body.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
+			fig.body.BackgroundTransparency = 0.15
+			fig.head.Size = UDim2.fromOffset(16 * scale, 30 * scale)
+			fig.head.Position = UDim2.new(0.5, 3 * scale, 0, -10 * scale)
+			fig.head.Rotation = 14
+			fig.head.BackgroundColor3 = Color3.fromRGB(16, 16, 18)
+			fig.head.BackgroundTransparency = 0.1
+		else
+			fig.body.Size = UDim2.fromOffset(44 * scale, 34 * scale)
+			fig.body.BackgroundColor3 = Color3.fromRGB(60, 62, 60)
+			fig.body.BackgroundTransparency = 0.5
+			fig.head.Size = UDim2.fromOffset(20 * scale, 24 * scale)
+			fig.head.Position = UDim2.fromScale(0.5, 0)
+			fig.head.Rotation = 0
+			fig.head.BackgroundColor3 = Color3.fromRGB(70, 72, 70)
+			fig.head.BackgroundTransparency = 0.4
+		end
+		for _, eye in fig.eyes do
+			eye.Visible = wrong
+		end
+	end
+	for i = shown + 1, #figures do
+		figures[i].body.Visible = false
+	end
 end
 
 local function tierLook(fc: Face, tier: number, t: number)
@@ -189,6 +284,7 @@ local function step()
 	turn += (want - turn) * 0.15
 	local tier = (State.get("Tier") :: number?) or 1
 	tierLook(fc, tier, os.clock())
+	riders(fc)
 end
 
 function MirrorController:Init()
