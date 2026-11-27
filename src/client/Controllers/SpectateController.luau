@@ -10,6 +10,8 @@ local Client = script.Parent.Parent
 local Gui = require(Client:WaitForChild("Gui"))
 local State = require(Client:WaitForChild("State"))
 local Registry = require(Client:WaitForChild("Registry"))
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Net = require(Shared:WaitForChild("Net"))
 
 local SpectateController = {}
 
@@ -18,6 +20,8 @@ local nameLabel: TextLabel
 local grain: Frame
 local index = 1
 local active = false
+local watching: Player? = nil
+local actions: Frame
 
 local function watchable(): { Player }
 	local out = {}
@@ -40,10 +44,12 @@ local function apply()
 			camera.CameraSubject = floor
 		end
 		nameLabel.Text = "Watching the bus"
+		watching = nil
 		return
 	end
 	index = ((index - 1) % #list) + 1
 	local target = list[index]
+	watching = target
 	local humanoid = target.Character and target.Character:FindFirstChildOfClass("Humanoid")
 	if humanoid then
 		camera.CameraSubject = humanoid
@@ -113,8 +119,35 @@ function SpectateController:Init()
 		MaxText = 16,
 	})
 	tag.Visible = false
+	-- Reaching through, once per stop: flicker a light near them, say one word on the
+	-- radio, or flash the mimics aboard.
+	actions = Gui.frame(sg, {
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -176),
+		Size = UDim2.fromOffset(420, 34),
+		BackgroundTransparency = 1,
+		Visible = false,
+	})
+	Gui.list(actions, 6, true)
+	local function action(text: string, fn: () -> ())
+		Gui.button(actions, text, fn, { Size = UDim2.fromOffset(64, 34), TextSize = 12 })
+	end
+	action("Flicker", function()
+		if watching then
+			Net.event("GhostAction"):FireServer("flicker", watching.UserId)
+		end
+	end)
+	for i, word in { "WAIT", "LEFT", "BEHIND", "NO" } do
+		action(word, function()
+			Net.event("GhostAction"):FireServer("word", i)
+		end)
+	end
+	action("Reveal", function()
+		Net.event("GhostAction"):FireServer("reveal")
+	end)
 	bar:GetPropertyChangedSignal("Visible"):Connect(function()
 		tag.Visible = bar.Visible
+		actions.Visible = bar.Visible
 	end)
 end
 

@@ -223,6 +223,26 @@ function PassengerController:Start()
 		watch(busFolder)
 	end
 	Notify.on("Bubble", bubble)
+	-- A Lost teammate reached through: the mimics aboard show for a second.
+	Notify.on("MimicFlash", function(p: any)
+		if type(p) ~= "table" or type(p.models) ~= "table" then
+			return
+		end
+		for _, m in p.models do
+			if typeof(m) == "Instance" and m:IsA("Model") and m.Parent then
+				local h = Instance.new("Highlight")
+				h.FillColor = Color3.fromRGB(150, 0, 0)
+				h.OutlineColor = Color3.fromRGB(255, 40, 30)
+				h.FillTransparency = 0.45
+				h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+				h.Adornee = m
+				h.Parent = m
+				task.delay(if type(p.seconds) == "number" then math.clamp(p.seconds, 0.2, 3) else 1, function()
+					h:Destroy()
+				end)
+			end
+		end
+	end)
 	RunService.RenderStepped:Connect(step)
 end
 

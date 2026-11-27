@@ -481,6 +481,7 @@ function CabinService.resetForRun()
 	table.clear(CabinService.holding)
 	CabinService.resetCord()
 	RunState:SetAttribute("Fragments", 0)
+	RunState:SetAttribute("ReturnTicketUsed", false)
 end
 
 function CabinService:Init()

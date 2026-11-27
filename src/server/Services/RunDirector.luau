@@ -90,7 +90,7 @@ function RunDirector.placeInBus(character: Model)
 		back[seat] = true
 	end
 	for _, seat in refs.seats do
-		if not seat.Occupant and not back[seat] then
+		if not seat.Occupant and not back[seat] and not seat.Disabled then
 			table.insert(free, seat)
 		end
 	end

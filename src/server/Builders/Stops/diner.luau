@@ -285,6 +285,60 @@ return function(parent: Instance, frame: CFrame, ctx: StopKit.Ctx, title: string
 			Net.notify(player, "Toast", { text = 'Rosie: "Stay warm, hon."' })
 		end)
 	end
+	-- The Return Ticket: once per run, 15 transfers brings one Lost teammate back aboard.
+	local returnTicket = StopKit.part(refs, {
+		name = "ReturnTicket",
+		size = Vector3.new(0.9, 0.1, 1.6),
+		cf = CFrame.new(counterX + 0.6, 4.35, -14 + (#MENU + 1) * 4),
+		color = Color3.fromRGB(200, 40, 50),
+		material = Enum.Material.Neon,
+		collide = false,
+	}, menu)
+	local returnPrompt = Build.prompt(
+		returnTicket,
+		string.format("Buy (%d transfers)", Config.Tuning.Player.ReturnTicketCost),
+		"Return Ticket",
+		1,
+		8,
+		"BuyPrompt"
+	)
+	returnPrompt.Triggered:Connect(function(player: Player)
+		local Inventory = Registry.find("InventoryService")
+		local PlayerState = Registry.find("PlayerStateService")
+		local Run = Registry.find("RunDirector")
+		local World = Registry.find("WorldService")
+		if not Inventory or not PlayerState or not Run or not World or not PlayerState.isHealthy(player) then
+			return
+		end
+		local RunState: Folder = World.RunState
+		if RunState:GetAttribute("ReturnTicketUsed") == true then
+			Net.notify(player, "Toast", { text = 'Rosie: "One per night, hon. That\'s the rule."' })
+			return
+		end
+		local lost: Player? = nil
+		for _, other in Run.runPlayers() do
+			if PlayerState.state(other) == "Static" then
+				lost = other
+				break
+			end
+		end
+		if not lost then
+			Net.notify(player, "Toast", { text = 'Rosie: "Nobody needs bringing back. Yet."' })
+			return
+		end
+		if not Inventory.spendTransfers(player, Config.Tuning.Player.ReturnTicketCost) then
+			Net.notify(player, "Toast", { text = "Not enough transfers." })
+			return
+		end
+		RunState:SetAttribute("ReturnTicketUsed", true)
+		local character = lost.Character
+		if character then
+			Run.placeInBus(character)
+		end
+		PlayerState.restore(lost)
+		Net.notifyAll("Toast", { text = `{player.DisplayName} bought {lost.DisplayName} a Return Ticket.` })
+		Net.notifyAll("Sound", { key = "DoorChime" })
+	end)
 	-- Menu board on the back wall.
 	local lines = {}
 	for _, entry in MENU do
