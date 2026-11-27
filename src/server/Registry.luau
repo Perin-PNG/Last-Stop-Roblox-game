@@ -42,6 +42,7 @@ Registry.Order = {
 	"TutorialService",
 	"KioskService",
 	"CosmeticService",
+	"UnlockService",
 	"ShareService",
 	"DebugService",
 }
