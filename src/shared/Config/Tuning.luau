@@ -244,6 +244,7 @@ Tuning.Entities = {
 	SentrySpotSeconds = 2,
 	AmbusherRange = 7,
 	LoseTargetSeconds = 4,
+	WakeDelay = { 14, 10, 7 }, -- seconds after the doors open before a stop's threat wakes
 }
 
 Tuning.Latecomer = {

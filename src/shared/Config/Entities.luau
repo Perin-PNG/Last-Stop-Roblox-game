@@ -28,6 +28,10 @@ export type EntityDef = {
 	coat: boolean?,
 	faceless: boolean?,
 	flareStuns: boolean?,
+	rig: ("figure" | "mannequin" | "scarecrow" | "car")?,
+	count: number?, -- how many spawn (Watcher groups)
+	countByTier: { number }?,
+	respectsShelter: boolean?, -- loses you inside a building marked Shelter
 }
 
 local Entities: { [string]: EntityDef } = {
@@ -100,6 +104,7 @@ local Entities: { [string]: EntityDef } = {
 		height = 1.1,
 		color = Color3.fromRGB(60, 70, 60),
 		flareStuns = true,
+		respectsShelter = true,
 	},
 	patient = {
 		id = "patient",
@@ -138,6 +143,9 @@ local Entities: { [string]: EntityDef } = {
 		counter = "Get behind cover. It can't leave the road or the lot.",
 		height = 1,
 		color = Color3.fromRGB(30, 30, 30),
+		rig = "car",
+		patrolSpeed = 14,
+		flareStuns = false,
 	},
 	mannequins = {
 		id = "mannequins",
@@ -150,6 +158,8 @@ local Entities: { [string]: EntityDef } = {
 		height = 1.1,
 		color = Color3.fromRGB(225, 215, 200),
 		faceless = true,
+		rig = "mannequin",
+		countByTier = { 4, 5, 6 },
 	},
 	mechanic = {
 		id = "mechanic",
@@ -177,6 +187,8 @@ local Entities: { [string]: EntityDef } = {
 		counter = "Look back often.",
 		height = 1.2,
 		color = Color3.fromRGB(110, 90, 50),
+		rig = "scarecrow",
+		countByTier = { 3, 4, 5 },
 	},
 	resident = {
 		id = "resident",
