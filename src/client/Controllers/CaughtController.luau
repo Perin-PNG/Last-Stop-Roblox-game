@@ -47,7 +47,7 @@ local function play()
 				local v = math.random(40, 230)
 				band.BackgroundColor3 = Color3.fromRGB(v, v, v)
 				band.BackgroundTransparency = math.random() * 0.5
-				band.Position = UDim2.new(math.random(-6, 6) / 100, 0, band.Position.Y.Scale, 0)
+				band.Position = UDim2.fromScale(math.random(-6, 6) / 100, band.Position.Y.Scale)
 			end
 		end)
 		task.wait(math.max(0, ends - os.clock()))
