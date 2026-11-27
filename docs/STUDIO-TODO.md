@@ -88,3 +88,19 @@ device. Tick them off as you go. Newest milestone at the bottom.
 - [ ] **Share prompts:** in a published test on a phone, make it back from the Between or
       reach an ending. A small "Share" card should appear bottom right. Share prompts can
       be turned off in Settings.
+
+## Review pass: things to look at
+
+- [ ] **The depot.** The departures board, title and bay sign used to show their text on
+      the thin edge of the board; they now face the platform. New: the depot office,
+      streetlights, a vending machine, posters and the **Route Map wall** by the kiosk
+      (your own stamps for every stop you've ridden).
+- [ ] **Getting caught** now breaks the screen into TV static and fades. With Reduce
+      flashing or Reduced jumpscares on, it's a plain fade.
+- [ ] **Reduce flashing** now also slows the cabin light flicker (when the Driver loses
+      patience) and blinking anomaly lights.
+- [ ] **First Ride:** if you get Lost in it, you're put back in a seat with a note. It
+      can't end badly.
+- [ ] **Voice chat volume** in Settings works when voice runs through the audio API
+      (Game Settings > Communication > "Use audio API").
+- [ ] **Pings** each have their own marker shape now (round, square, diamond and so on).
