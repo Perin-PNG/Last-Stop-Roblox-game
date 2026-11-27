@@ -54,3 +54,29 @@ device. Tick them off as you go. Newest milestone at the bottom.
       second run to check that Tokens, Rank and what you bought were saved.
 - [ ] **A 20-person playtest** when you can gather people (the M2 gate is a median session
       of 25 minutes or more). Friends, a Roblox group or a Discord. Note where people quit.
+
+## M3: alpha features
+
+- [ ] **The M3 playtest** (see `docs/M3-TEST.md`): the First Ride, then the full 11-stop
+      route with the Terminal finale, solo and with friends.
+- [ ] **Badges.** Creator Hub > your experience > Engagement > Badges. Make one for each
+      key in `Badges` in `src/shared/Config/Products.luau` (FirstRide, Home, Transfer,
+      LastStop, DriversSeat, BackFromTheBetween, EyesFront, NotOnMyBus, LateFee,
+      Inspector, Lifer) and paste each id there, or send them to Claude. A badge with id 0
+      is never awarded. The first few badges a day are free; Roblox shows the cost if not.
+- [ ] **Game passes and products (when you decide to sell them).** Claude won't create
+      anything that charges Robux. If you want them: Creator Hub > Monetization > Passes
+      (CommuterPass, LiveryPack, VoicePackDispatch, PolaroidFrames) and Developer Products
+      (Tokens500, Tokens1400, Tokens3000, RunDoubler, TipTheDriver). You set the prices.
+      Paste the ids into `Products.luau`. Anything left at 0 stays hidden in the game.
+- [ ] **Private servers (optional).** Game Settings > Monetization > Private Servers. A
+      private server plays party runs (no strangers matched in).
+- [ ] **Finale sounds.** New keys in `src/shared/Config/Audio.luau`: Horn, Breaker,
+      PowerHum, GateOpen, Pry, Crash, EngineStart, Dawn, OtherBusDoors, WaterLap, Splash.
+      The music group (MallMusic, Dawn) follows the Music volume slider.
+- [ ] **Onboarding funnel.** After a few First Rides in a published test, open Creator
+      Hub > Analytics > Onboarding funnel. The steps are Offered, Started, ReadRules,
+      MetTheDriver, GasAndGo, PouredFuel, Laundromat, LoopCheck, Finished. A big drop
+      between two steps tells Claude which tutorial step to fix.
+- [ ] **Phone and gamepad.** Run the M3 playtest once on a phone (Studio's Device
+      Emulator is fine for a first look) and once with a controller.
