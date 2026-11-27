@@ -341,7 +341,7 @@ function AudioController:Init()
 		local voice = (Settings.get("voiceVolume") :: number?) or 1
 		for _, other in Players:GetPlayers() do
 			if other ~= Players.LocalPlayer then
-				for _, d in other:GetDescendants() do
+				for _, d in other:GetChildren() do
 					if d:IsA("AudioDeviceInput") then
 						pcall(function()
 							d.Volume = voice
@@ -363,14 +363,24 @@ function AudioController:Init()
 			volumes()
 		end
 	end)
-	Players.DescendantAdded:Connect(function(d: Instance)
-		if d:IsA("AudioDeviceInput") and not d:IsDescendantOf(Players.LocalPlayer) then
-			local voice = (Settings.get("voiceVolume") :: number?) or 1
-			pcall(function()
-				d.Volume = voice
-			end)
+	-- Roblox puts each player's voice input (AudioDeviceInput) directly under the Player.
+	local function watchVoice(other: Player)
+		if other == Players.LocalPlayer then
+			return
 		end
-	end)
+		other.ChildAdded:Connect(function(d: Instance)
+			if d:IsA("AudioDeviceInput") then
+				local voice = (Settings.get("voiceVolume") :: number?) or 1
+				pcall(function()
+					d.Volume = voice
+				end)
+			end
+		end)
+	end
+	Players.PlayerAdded:Connect(watchVoice)
+	for _, other in Players:GetPlayers() do
+		watchVoice(other)
+	end
 end
 
 function AudioController:Start()
