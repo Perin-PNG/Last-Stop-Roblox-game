@@ -189,6 +189,64 @@ local function dashes(parent: Instance, points: { CFrame })
 	end
 end
 
+-- Small things that make a night road read as real: cat's eyes on the centre line,
+-- reflector posts on the far shoulder, and darker patched asphalt. All decoration.
+local function details(parent: Instance, points: { CFrame }, o: SurfaceOptions)
+	local n = 0
+	for _, seg in RoadBuilder.segments(points, 4) do
+		n += 1
+		local pos = seg.cf.Position
+		local hash = math.floor(math.abs(pos.X * 0.37 + pos.Z * 0.61)) % 7
+		if n % 2 == 0 then
+			Build.part(parent, {
+				name = "CatsEye",
+				size = Vector3.new(0.35, 0.08, 0.35),
+				cf = seg.cf * CFrame.new(0.6, 0.05, 4),
+				color = Color3.fromRGB(255, 196, 90),
+				material = Enum.Material.Neon,
+				transparency = 0.35,
+				collide = false,
+				query = false,
+				group = "World",
+			})
+		end
+		if o.shoulder ~= false and n % 3 == 0 then
+			local post = seg.cf * CFrame.new(-HALF - SHOULDER + 1, 1.6, 0)
+			Build.part(parent, {
+				name = "ReflectorPost",
+				size = Vector3.new(0.35, 3.2, 0.35),
+				cf = post,
+				color = Color3.fromRGB(225, 225, 220),
+				collide = false,
+				group = "World",
+			})
+			Build.part(parent, {
+				name = "Reflector",
+				size = Vector3.new(0.38, 0.5, 0.2),
+				cf = post * CFrame.new(0, 1.1, 0),
+				color = Color3.fromRGB(255, 150, 40),
+				material = Enum.Material.Neon,
+				transparency = 0.2,
+				collide = false,
+				query = false,
+				group = "World",
+			})
+		end
+		if hash == 3 then
+			Build.part(parent, {
+				name = "Patch",
+				size = Vector3.new(4 + hash, 0.04, 3 + hash * 0.5),
+				cf = seg.cf * CFrame.new(-HALF * 0.45, 0.01, 0) * CFrame.Angles(0, math.rad(hash * 11), 0),
+				color = Color3.fromRGB(30, 30, 33),
+				material = Enum.Material.Asphalt,
+				collide = false,
+				query = false,
+				group = "World",
+			})
+		end
+	end
+end
+
 -- Road surface along any points.
 function RoadBuilder.surface(parent: Instance, points: { CFrame }, opts: SurfaceOptions?)
 	local o: SurfaceOptions = opts or {}
@@ -205,6 +263,7 @@ function RoadBuilder.surface(parent: Instance, points: { CFrame }, opts: Surface
 	end
 	if o.lines ~= false then
 		dashes(parent, points)
+		details(parent, points, o)
 	end
 end
 
@@ -242,6 +301,24 @@ function RoadBuilder.streetlight(parent: Instance, at: CFrame, side: number?): B
 	})
 	local light = Build.light(lamp, "Spot", C.Sodium, 2.4, 42, false);
 	(light :: SpotLight).Angle = 100
+	-- Cobra-head housing over the lamp, and a concrete footing.
+	Build.part(model, {
+		name = "Hood",
+		size = Vector3.new(2.8, 0.6, 1.5),
+		cf = base * CFrame.new(-s * 6.4, 21.95, 0),
+		color = Color3.fromRGB(70, 72, 76),
+		material = Enum.Material.Metal,
+		collide = false,
+		group = "World",
+	})
+	Build.part(model, {
+		name = "Footing",
+		size = Vector3.new(1.4, 0.8, 1.4),
+		cf = base * CFrame.new(0, 0.4, 0),
+		color = C.Concrete,
+		material = Enum.Material.Concrete,
+		group = "World",
+	})
 	return lamp
 end
 

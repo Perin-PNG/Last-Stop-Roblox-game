@@ -197,7 +197,37 @@ function StopService.stock(stop: BuiltStop, players: number, stalled: boolean?)
 end
 
 -- The doors opened: start the stop's own runtime (dryers counting down and the like).
+-- The shelter's timetable clock: the in-world way to read time until departure.
+local function runTimetable(stop: BuiltStop)
+	local label = stop.refs.timetable :: TextLabel?
+	if not label then
+		return
+	end
+	task.spawn(function()
+		while stop.active and label.Parent do
+			local runState = World.RunState
+			local deadline = runState:GetAttribute("Deadline")
+			local phase = runState:GetAttribute("Phase")
+			if type(deadline) == "number" and phase == "Stop" then
+				local left = math.max(0, math.ceil(deadline - workspace:GetServerTimeNow()))
+				label.Text = string.format("9N NIGHT OWL\nDEPARTS\n%d:%02d", left // 60, left % 60)
+				label.TextColor3 = if left <= 10 then Color3.fromRGB(200, 30, 30) else Color3.fromRGB(20, 20, 30)
+			elseif phase == "Stalled" then
+				label.Text = "9N NIGHT OWL\nDELAYED"
+			else
+				label.Text = "9N NIGHT OWL\nDEPARTED"
+			end
+			task.wait(0.5)
+		end
+		if label.Parent then
+			label.Text = "9N NIGHT OWL\n--:--"
+			label.TextColor3 = Color3.fromRGB(20, 20, 30)
+		end
+	end)
+end
+
 function StopService.activate(stop: BuiltStop, deadline: number)
+	runTimetable(stop)
 	local fn = stop.refs.extras.activate
 	if fn then
 		local ok, err = pcall(fn, stop, deadline)

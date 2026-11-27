@@ -666,6 +666,200 @@ function BusBuilder.build(parent: Instance, at: CFrame, livery: Color3?): BusRef
 		end
 	end
 
+	-- Detail: shapes that make it read as a real transit bus. All decoration is massless,
+	-- uncollidable and unqueryable so it never changes how the bus drives or what rays hit.
+	local function D(name: string, size: Vector3, cf: CFrame, color: Color3, props: { [string]: any }?): Part
+		local opts: { [string]: any } = { collide = false, query = false }
+		if props then
+			for k, v in props do
+				opts[k] = v
+			end
+		end
+		local part = P(name, size, cf, color, opts)
+		part.Massless = true
+		return part
+	end
+	local trim = Color3.fromRGB(26, 28, 32)
+	local chrome = Color3.fromRGB(178, 182, 186)
+	local skirt = Color3.fromRGB(58, 62, 68)
+	local alongZ = CFrame.Angles(0, math.rad(90), 0)
+	-- Rounded roof edges and corners.
+	for _, side in { -1, 1 } do
+		D(
+			"RoofEdge",
+			Vector3.new(LEN + 0.2, 1.2, 1.2),
+			L(side * (halfW - 0.1), BusBuilder.Height + 0.35, 0) * alongZ,
+			body,
+			{
+				shape = Enum.PartType.Cylinder,
+				material = Enum.Material.Metal,
+			}
+		)
+		for _, z in { -halfL + 0.2, halfL - 0.2 } do
+			D(
+				"Corner",
+				Vector3.new(BusBuilder.Height + 0.6, 1.1, 1.1),
+				L(side * (halfW - 0.2), BusBuilder.Height / 2 + 0.1, z) * CFrame.Angles(0, 0, math.rad(90)),
+				body,
+				{ shape = Enum.PartType.Cylinder, material = Enum.Material.Metal }
+			)
+		end
+	end
+	-- Roof air-conditioning pod and marker lights.
+	D("RoofAC", Vector3.new(6.5, 1, 12), L(0, BusBuilder.Height + 1.5, 8), Color3.fromRGB(190, 190, 184), {
+		material = Enum.Material.Metal,
+	})
+	for i = -2, 2 do
+		D("ACVent", Vector3.new(5.5, 0.1, 0.4), L(0, BusBuilder.Height + 2.02, 8 + i * 2), trim)
+	end
+	D("RoofHatch", Vector3.new(3, 0.4, 3), L(0, BusBuilder.Height + 1.2, -12), Color3.fromRGB(170, 170, 165), {
+		material = Enum.Material.Metal,
+	})
+	for _, side in { -1, 1 } do
+		D(
+			"MarkerFront",
+			Vector3.new(0.6, 0.3, 0.3),
+			L(side * 5.2, BusBuilder.Height + 0.9, -halfL - 0.1),
+			Color3.fromRGB(255, 170, 40),
+			{
+				material = Enum.Material.Neon,
+			}
+		)
+		D("MarkerRear", Vector3.new(0.6, 0.3, 0.3), L(side * 5.2, BusBuilder.Height + 0.9, halfL + 0.1), C.Red, {
+			material = Enum.Material.Neon,
+		})
+	end
+	-- Window band: rubber seals, pillars between panes, and a darker skirt.
+	local runs: { { side: number, z0: number, z1: number, windows: boolean } } = {
+		{ side = -1, z0 = -halfL, z1 = halfL, windows = true },
+		{ side = 1, z0 = -halfL, z1 = fd0, windows = false },
+		{ side = 1, z0 = fd1, z1 = md0, windows = true },
+		{ side = 1, z0 = md1, z1 = halfL, windows = true },
+	}
+	for _, run in runs do
+		local len = run.z1 - run.z0
+		local zc = (run.z0 + run.z1) / 2
+		local x = run.side * (halfW + 0.03)
+		D("SealLow", Vector3.new(0.12, 0.25, len), L(x, 4.0, zc), trim)
+		D("SealHigh", Vector3.new(0.12, 0.25, len), L(x, 9.0, zc), trim)
+		D("Skirt", Vector3.new(0.12, 1.3, len), L(x, 0.65, zc), skirt, { material = Enum.Material.Metal })
+		if run.windows then
+			local from = math.max(run.z0, -23.5)
+			local z = from + 4.6
+			while z < run.z1 - 1 do
+				D("Pillar", Vector3.new(0.14, 5, 0.45), L(x, 6.5, z), trim)
+				z += 4.6
+			end
+		end
+	end
+	-- Lettering on both flanks.
+	for _, side in { -1, 1 } do
+		local face = if side < 0 then Enum.NormalId.Left else Enum.NormalId.Right
+		local sign, label = Build.sign(model, {
+			name = "Lettering",
+			size = Vector3.new(0.05, 1, 16),
+			cf = L(side * (halfW + 0.06), 2.3, 13),
+			color = body,
+			collide = false,
+			group = "Bus",
+		}, "HOLLOW COUNTY TRANSIT", face, C.BusStripe)
+		sign.Transparency = 1
+		sign.Massless = true
+		label.Font = Enum.Font.GothamBlack
+		local unit, unitLabel = Build.sign(model, {
+			name = "UnitNumber",
+			size = Vector3.new(0.05, 1.2, 2.4),
+			cf = L(side * (halfW + 0.06), 2.3, if side < 0 then -24 else -26.4),
+			color = body,
+			collide = false,
+			group = "Bus",
+		}, "9", face, C.Black)
+		unit.Transparency = 1
+		unit.Massless = true
+		unitLabel.Font = Enum.Font.GothamBlack
+	end
+	-- Wheels: hubs, arches and mud flaps.
+	for _, z in { -18, 18 } do
+		for _, side in { -1, 1 } do
+			D(
+				"Hub",
+				Vector3.new(0.3, 2.1, 2.1),
+				L(side * (halfW + 0.45), -2.2, z) * CFrame.Angles(0, 0, math.pi / 2),
+				chrome,
+				{
+					shape = Enum.PartType.Cylinder,
+					material = Enum.Material.Metal,
+				}
+			)
+			D(
+				"HubCap",
+				Vector3.new(0.35, 0.8, 0.8),
+				L(side * (halfW + 0.5), -2.2, z) * CFrame.Angles(0, 0, math.pi / 2),
+				trim,
+				{
+					shape = Enum.PartType.Cylinder,
+				}
+			)
+			D("Arch", Vector3.new(0.35, 0.6, 5.4), L(side * (halfW + 0.12), -0.7, z), trim)
+			D("MudFlap", Vector3.new(0.1, 1.6, 1.4), L(side * (halfW - 0.3), -2.2, z + 2.6), trim, {
+				material = Enum.Material.Rubber,
+			})
+		end
+	end
+	-- Front end: bumper, grille, wipers, mirrors.
+	D(
+		"FrontBumper",
+		Vector3.new(W + 0.4, 0.9, 0.7),
+		L(0, 0.1, -halfL - 0.35),
+		trim,
+		{ material = Enum.Material.Rubber }
+	)
+	D("Grille", Vector3.new(5, 1.4, 0.12), L(0, 2.1, -halfL - 0.08), trim)
+	for i = -2, 2 do
+		D("GrilleBar", Vector3.new(4.8, 0.08, 0.14), L(0, 2.1 + i * 0.25, -halfL - 0.1), chrome, {
+			material = Enum.Material.Metal,
+		})
+	end
+	for _, x in { -2.6, 2.4 } do
+		D("Wiper", Vector3.new(0.12, 4.2, 0.1), L(x, 5.9, -halfL - 0.05) * CFrame.Angles(0, 0, math.rad(-62)), trim)
+	end
+	for _, side in { -1, 1 } do
+		D("MirrorArm", Vector3.new(1.6, 0.15, 0.15), L(side * (halfW + 0.7), 9.2, -halfL + 0.8), trim)
+		D("SideMirror", Vector3.new(0.3, 2.2, 1.1), L(side * (halfW + 1.45), 8.4, -halfL + 0.8), trim)
+		D("SideMirrorGlass", Vector3.new(0.05, 1.9, 0.9), L(side * (halfW + 1.45), 8.4, -halfL + 0.25), chrome, {
+			material = Enum.Material.Glass,
+			reflectance = 0.4,
+		})
+	end
+	-- Rear end: engine grille, bumper, plate.
+	D("RearBumper", Vector3.new(W + 0.4, 0.9, 0.7), L(0, 0.1, halfL + 0.35), trim, { material = Enum.Material.Rubber })
+	D("EngineDoor", Vector3.new(7, 2.6, 0.1), L(0, 2.3, halfL + 0.06), body:Lerp(trim, 0.15), {
+		material = Enum.Material.Metal,
+	})
+	for i = -3, 3 do
+		D("EngineSlat", Vector3.new(6.4, 0.12, 0.12), L(0, 2.3 + i * 0.32, halfL + 0.12), trim)
+	end
+	local plate, plateLabel = Build.sign(model, {
+		name = "Plate",
+		size = Vector3.new(2.2, 0.8, 0.05),
+		cf = L(0, 0.15, halfL + 0.72) * CFrame.Angles(0, math.pi, 0),
+		color = Color3.fromRGB(235, 232, 220),
+		collide = false,
+		group = "Bus",
+	}, "HCT 9N", Enum.NormalId.Front, C.Black)
+	plate.Massless = true
+	plateLabel.Font = Enum.Font.Code
+	-- Inside: ceiling grab rails and a rubber aisle runner.
+	for _, x in { -3.1, 3.1 } do
+		D("GrabRail", Vector3.new(LEN - 12, 0.22, 0.22), L(x, BusBuilder.Height - 1.1, 2) * alongZ, chrome, {
+			shape = Enum.PartType.Cylinder,
+			material = Enum.Material.Metal,
+		})
+	end
+	D("AisleRunner", Vector3.new(2.4, 0.04, LEN - 10), L(0, 0.02, 3), Color3.fromRGB(36, 36, 38), {
+		material = Enum.Material.Rubber,
+	})
+
 	-- Weld everything to the floor. Doors use Weld (C0 animates them); the rest uses
 	-- WeldConstraint.
 	for _, d in model:GetDescendants() do

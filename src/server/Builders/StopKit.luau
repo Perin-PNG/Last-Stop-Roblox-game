@@ -218,6 +218,57 @@ function StopKit.shelter(refs: StopRefs, title: string, z: number?): Model
 		color = Color3.fromRGB(30, 70, 120),
 		collide = false,
 	}, "HCTA\n9N\n" .. title, Enum.NormalId.Left, Color3.new(1, 1, 1), shelter)
+	-- A lit advertising panel at the end of the shelter (the glow you see from the road),
+	-- a strip light under the roof, and a bin.
+	local ad, adLabel = StopKit.sign(refs, {
+		name = "AdPanel",
+		size = Vector3.new(3.4, 6.4, 0.5),
+		cf = CFrame.new(7.4, 4.4, zc + 6.1),
+		color = Color3.fromRGB(230, 236, 240),
+		material = Enum.Material.Neon,
+	}, "RIDE THE 9N\nWE NEVER STOP", Enum.NormalId.Back, Color3.fromRGB(40, 60, 90), shelter)
+	adLabel.Font = Enum.Font.GothamBlack
+	local glow = Instance.new("SurfaceLight")
+	glow.Face = Enum.NormalId.Back
+	glow.Color = Color3.fromRGB(220, 235, 255)
+	glow.Brightness = 1.2
+	glow.Range = 16
+	glow.Angle = 120
+	glow.Parent = ad
+	local strip = StopKit.part(refs, {
+		name = "StripLight",
+		size = Vector3.new(0.3, 0.15, 9),
+		cf = CFrame.new(7.4, 8.9, zc),
+		color = C.Fluor,
+		material = Enum.Material.Neon,
+		collide = false,
+	}, shelter)
+	Build.light(strip, "Point", C.Fluor, 0.8, 14, false)
+	StopKit.part(refs, {
+		name = "Bin",
+		size = Vector3.new(1.6, 2.6, 1.6),
+		cf = CFrame.new(8.4, 1.3, zc - 7.6),
+		color = Color3.fromRGB(40, 64, 46),
+		material = Enum.Material.Metal,
+		shape = Enum.PartType.Cylinder,
+	}, shelter).CFrame = refs.frame
+		* CFrame.new(8.4, 1.3, zc - 7.6)
+		* CFrame.Angles(0, 0, math.rad(90))
+	-- Puddles on the sidewalk catch the streetlights.
+	for i, at in { Vector3.new(4.5, 0.75, zc - 4), Vector3.new(3, 0.75, zc + 12), Vector3.new(6.5, 0.75, zc - 20) } do
+		StopKit.part(refs, {
+			name = "Puddle",
+			size = Vector3.new(0.05, 2.5 + i * 0.7, 3.6 + i),
+			cf = CFrame.new(at) * CFrame.Angles(0, math.rad(i * 37), math.rad(90)),
+			color = Color3.fromRGB(16, 18, 24),
+			material = Enum.Material.Glass,
+			reflectance = 0.25,
+			transparency = 0.15,
+			shape = Enum.PartType.Cylinder,
+			collide = false,
+			query = false,
+		}, shelter)
+	end
 	refs.shelter = shelter
 	return shelter
 end
