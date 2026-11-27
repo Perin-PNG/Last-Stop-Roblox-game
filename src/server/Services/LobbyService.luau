@@ -46,6 +46,198 @@ local function P(model: Instance, props: Build.PartProps): Part
 	return Build.part(model, p)
 end
 
+-- Set dressing so the depot reads as a real place: the depot office behind the
+-- platform, sodium streetlights along the road, bins, a vending machine, bollards at
+-- the bay, puddles, posters and a line of trees.
+local function dressDepot(model: Model)
+	local rng = Random.new(9)
+	-- The office: a brick block across the back of the platform.
+	P(model, {
+		name = "OfficeWall",
+		size = Vector3.new(14, 16.5, 64),
+		cf = CFrame.new(47, 5.75, 0),
+		color = C.Brick,
+		material = Enum.Material.Brick,
+		cast = true,
+	})
+	P(model, {
+		name = "OfficeRoof",
+		size = Vector3.new(16, 1, 66),
+		cf = CFrame.new(47, 14.5, 0),
+		color = C.DarkMetal,
+		material = Enum.Material.Metal,
+	})
+	for _, z in { -24, -12, 12, 24 } do
+		local pane = P(model, {
+			name = "OfficeWindow",
+			size = Vector3.new(0.2, 4, 6),
+			cf = CFrame.new(39.95, 6.5, z),
+			color = Color3.fromRGB(255, 214, 150),
+			material = Enum.Material.Neon,
+			transparency = 0.25,
+			collide = false,
+		})
+		Build.light(pane, "Point", C.Warm, 0.6, 14, false)
+		P(model, {
+			name = "OfficeSill",
+			size = Vector3.new(0.6, 0.3, 6.6),
+			cf = CFrame.new(39.7, 4.35, z),
+			color = C.Concrete,
+			material = Enum.Material.Concrete,
+		})
+	end
+	P(model, {
+		name = "OfficeDoor",
+		size = Vector3.new(0.3, 8, 4.5),
+		cf = CFrame.new(39.9, 4, 0),
+		color = Color3.fromRGB(40, 70, 110),
+		material = Enum.Material.Metal,
+	})
+	local _, officeSign = Build.sign(model, {
+		name = "OfficeSign",
+		size = Vector3.new(14, 1.6, 0.3),
+		cf = origin() * CFrame.new(39.8, 9.6, 0) * CFrame.Angles(0, math.rad(90), 0),
+		color = C.Black,
+		group = "World",
+	}, "HCTA  ·  DEPOT OFFICE  ·  NO ENTRY", Enum.NormalId.Front, Color3.fromRGB(255, 190, 80))
+	officeSign.Font = Enum.Font.Code
+	-- Posters on the office wall: house rules and a little lore.
+	local posters = {
+		{ z = -6, text = "RIDER NOTICE\n\nThe 9N departs\nwhen the bell rings.\nIt does not wait.", color = C.White },
+		{
+			z = 6,
+			text = "MISSING\n\nUnit 6 and all\npassengers.\nLast seen on\nRoute 9N.",
+			color = Color3.fromRGB(230, 220, 190),
+		},
+		{ z = 18, text = "PLEASE\n\nDo not speak to\nthe operator\nwhile the bus\nis in motion.", color = C.White },
+		{
+			z = -18,
+			text = "NIGHT OWL\nSERVICE\n\nEvery stop.\nEvery night.\nUntil dawn.",
+			color = Color3.fromRGB(210, 225, 240),
+		},
+	}
+	for _, poster in posters do
+		local _, label = Build.sign(model, {
+			name = "Poster",
+			size = Vector3.new(3, 4, 0.1),
+			cf = origin() * CFrame.new(39.85, 5.5, poster.z) * CFrame.Angles(0, math.rad(90), 0),
+			color = poster.color,
+			material = Enum.Material.Fabric,
+			collide = false,
+			group = "World",
+		}, poster.text, Enum.NormalId.Front, Color3.fromRGB(30, 28, 26))
+		label.Font = Enum.Font.SpecialElite
+	end
+	-- Sodium streetlights along the road edge.
+	for z = -90, 90, 45 do
+		P(model, {
+			name = "StreetPole",
+			size = Vector3.new(0.6, 18, 0.6),
+			cf = CFrame.new(-42, 9, z),
+			color = C.DarkMetal,
+			material = Enum.Material.Metal,
+		})
+		P(model, {
+			name = "StreetArm",
+			size = Vector3.new(6, 0.4, 0.4),
+			cf = CFrame.new(-45, 17.8, z),
+			color = C.DarkMetal,
+			material = Enum.Material.Metal,
+		})
+		local head = P(model, {
+			name = "StreetHead",
+			size = Vector3.new(2.2, 0.5, 1.2),
+			cf = CFrame.new(-47.6, 17.4, z),
+			color = C.Sodium,
+			material = Enum.Material.Neon,
+			collide = false,
+		})
+		Build.light(head, "Spot", C.Sodium, 2.2, 40, false)
+	end
+	-- Bollards along the curb either side of the bay, and bins and a vending machine.
+	for _, z in { -34, -27, -20, 20, 27, 34 } do
+		P(model, {
+			name = "Bollard",
+			size = Vector3.new(2.6, 0.8, 0.8),
+			cf = CFrame.new(-37, 1.3, z),
+			color = Color3.fromRGB(230, 200, 40),
+			material = Enum.Material.SmoothPlastic,
+			shape = Enum.PartType.Cylinder,
+		})
+	end
+	for _, bollard in model:GetChildren() do
+		if bollard.Name == "Bollard" and bollard:IsA("BasePart") then
+			-- A cylinder's axis is X; stand it up.
+			bollard.CFrame = bollard.CFrame * CFrame.Angles(0, 0, math.rad(90))
+		end
+	end
+	for _, z in { -36, 36 } do
+		P(model, {
+			name = "Bin",
+			size = Vector3.new(2, 3, 2),
+			cf = CFrame.new(-8, 1.5, z),
+			color = Color3.fromRGB(40, 70, 50),
+			material = Enum.Material.Metal,
+		})
+	end
+	local vending = P(model, {
+		name = "Vending",
+		size = Vector3.new(3, 7, 3.5),
+		cf = CFrame.new(37.5, 3.5, 8),
+		color = Color3.fromRGB(150, 30, 30),
+		material = Enum.Material.SmoothPlastic,
+	})
+	local glow = P(model, {
+		name = "VendingGlass",
+		size = Vector3.new(0.1, 4.6, 2.6),
+		cf = CFrame.new(35.95, 4.2, 8),
+		color = Color3.fromRGB(220, 240, 255),
+		material = Enum.Material.Neon,
+		transparency = 0.35,
+		collide = false,
+	})
+	Build.light(glow, "Point", Color3.fromRGB(200, 225, 255), 0.8, 12, false)
+	local _ = vending
+	-- Puddles that catch the light.
+	for _ = 1, 7 do
+		local x = rng:NextNumber(-30, 30)
+		local z = rng:NextNumber(-50, 50)
+		P(model, {
+			name = "Puddle",
+			size = Vector3.new(rng:NextNumber(3, 7), 0.05, rng:NextNumber(2, 5)),
+			cf = CFrame.new(x, 0.03, z) * CFrame.Angles(0, rng:NextNumber(0, math.pi), 0),
+			color = Color3.fromRGB(20, 26, 30),
+			material = Enum.Material.Glass,
+			transparency = 0.3,
+			reflectance = 0.35,
+			collide = false,
+			query = false,
+		})
+	end
+	-- A line of dark trees behind the office.
+	for i = 1, 14 do
+		local x = 62 + rng:NextNumber(0, 40)
+		local z = -90 + i * 12 + rng:NextNumber(-4, 4)
+		local h = rng:NextNumber(14, 24)
+		P(model, {
+			name = "Trunk",
+			size = Vector3.new(1.2, h, 1.2),
+			cf = CFrame.new(x, h / 2 - 2, z),
+			color = Color3.fromRGB(40, 32, 26),
+			material = Enum.Material.Wood,
+		})
+		P(model, {
+			name = "Crown",
+			size = Vector3.one * (h * 0.6),
+			cf = CFrame.new(x, h - 2, z),
+			color = Color3.fromRGB(22, 34, 24),
+			material = Enum.Material.Grass,
+			shape = Enum.PartType.Ball,
+			cast = false,
+		})
+	end
+end
+
 local function buildLobby()
 	local model = Build.model(World.Folders.Lobby, "Depot")
 	-- Platform and the bay.
@@ -118,8 +310,8 @@ local function buildLobby()
 	LobbyService.zone = zone
 	local _, bayLabel = Build.sign(model, {
 		name = "BaySign",
-		size = Vector3.new(0.4, 4, 12),
-		cf = origin() * CFrame.new(-31, 11, -16) * CFrame.Angles(0, math.rad(90), 0),
+		size = Vector3.new(12, 4, 0.4),
+		cf = origin() * CFrame.new(-31, 11, -16) * CFrame.Angles(0, math.rad(-90), 0),
 		color = C.Black,
 		collide = false,
 		group = "World",
@@ -128,25 +320,34 @@ local function buildLobby()
 	-- The departures board.
 	local board, label = Build.sign(model, {
 		name = "Departures",
-		size = Vector3.new(0.6, 7, 16),
-		cf = origin() * CFrame.new(10, 8, 0) * CFrame.Angles(0, math.rad(-90), 0),
+		size = Vector3.new(16, 7, 0.6),
+		cf = origin() * CFrame.new(10, 8, 0) * CFrame.Angles(0, math.rad(90), 0),
 		color = Color3.fromRGB(14, 14, 16),
 		group = "World",
 	}, "", Enum.NormalId.Front, Color3.fromRGB(255, 190, 80))
 	label.Font = Enum.Font.Code
 	LobbyService.board = label
+	for _, z in { -8.4, 8.4 } do
+		P(model, {
+			name = "DeparturesPost",
+			size = Vector3.new(0.5, 12, 0.5),
+			cf = CFrame.new(10, 6, z),
+			color = C.DarkMetal,
+			material = Enum.Material.Metal,
+		})
+	end
 	local _ = board
 	-- Title sign.
 	local _, title = Build.sign(model, {
 		name = "Title",
-		size = Vector3.new(0.6, 6, 40),
-		cf = origin() * CFrame.new(30, 14, 0) * CFrame.Angles(0, math.rad(-90), 0),
+		size = Vector3.new(40, 6, 0.6),
+		cf = origin() * CFrame.new(30, 14, 0) * CFrame.Angles(0, math.rad(90), 0),
 		color = Color3.fromRGB(30, 70, 120),
 		group = "World",
 	}, string.upper(Config.GameName) .. "\nHOLLOW COUNTY TRANSIT", Enum.NormalId.Front, C.White)
 	title.Font = Enum.Font.GothamBlack
 	-- The Route Map wall: each player sees their own stamps (RouteMapController).
-	local mapCf = CFrame.new(24, 0, -34) * CFrame.Angles(0, math.rad(-90), 0)
+	local mapCf = CFrame.new(24, 0, -34) * CFrame.Angles(0, math.rad(90), 0)
 	for _, side in { -9.6, 9.6 } do
 		P(model, {
 			name = "RouteMapPost",
@@ -189,6 +390,7 @@ local function buildLobby()
 	spawn.Duration = 0
 	spawn.Parent = model
 	LobbyService.spawn = spawn
+	dressDepot(model)
 end
 
 LobbyService.board = nil :: TextLabel?
