@@ -456,6 +456,12 @@ function InventoryService.dropSlot(player: Player, slot: number): boolean
 	return true
 end
 
+-- Drop whatever is in the selected slot (Dread at 100 makes you let go).
+function InventoryService.dropSelected(player: Player): boolean
+	local i = inv(player)
+	return InventoryService.dropSlot(player, i.selected)
+end
+
 function InventoryService.dropHeavy(player: Player)
 	local i = inv(player)
 	for n, id in i.slots do

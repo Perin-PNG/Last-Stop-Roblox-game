@@ -16,6 +16,7 @@ Registry.Order = {
 	"VoiceReporter",
 	"InventoryController",
 	"DreadController",
+	"HallucinationController",
 	"PingController",
 	"HUDController",
 	"PromptController",
