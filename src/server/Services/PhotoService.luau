@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Perks = require(Shared.Perks)
 local Log = require(Shared.Log)
 local Signal = require(Shared.Util.Signal)
 
@@ -141,7 +142,7 @@ function PhotoService.prompt(player: Player)
 	end
 	lastShot[player] = t
 	Net.notifyAll("Sound", { key = "Camera", at = eye })
-	local develop = if player:GetAttribute("Perk") == "steady_hands" then 0 else Tuning.PhotoDevelopSeconds
+	local develop = if Perks.has(player, "steady_hands") then 0 else Tuning.PhotoDevelopSeconds
 	local best = candidates(eye, dir)[1]
 	local payload: { [string]: any } = { develop = develop, eye = eye, dir = dir }
 	if best and best.anomaly then

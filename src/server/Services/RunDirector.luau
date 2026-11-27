@@ -618,7 +618,8 @@ function RunDirector.startRun(players: { Player }, opts: { seed: number?, mode: 
 		Chunks.reset(RunDirector.seed, CFrame.new(0, 0, 0))
 		Chunks.appendLeadIn(240)
 	end
-	Bus.spawn(60)
+	local cosmetics = find("CosmeticService")
+	Bus.spawn(60, if cosmetics then cosmetics.liveryFor(players) else nil)
 	if Tuning.Bus.Mode == "Physics" then
 		Chunks.ensureAhead(60)
 	end

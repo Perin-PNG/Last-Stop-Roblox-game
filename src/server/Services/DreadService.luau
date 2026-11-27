@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Perks = require(Shared.Perks)
 local Log = require(Shared.Log)
 local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
 
@@ -149,7 +150,7 @@ local function gainMultiplier(): number
 end
 
 local function hallucinateAt(player: Player): number
-	return if player:GetAttribute("Perk") == "calm" then Tuning.CalmHallucinateAt else Tuning.HallucinateAt
+	return if Perks.has(player, "calm") then Tuning.CalmHallucinateAt else Tuning.HallucinateAt
 end
 
 local function sendHallucination(player: Player, kind: string?)

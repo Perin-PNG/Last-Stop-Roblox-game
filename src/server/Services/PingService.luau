@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Net = require(Shared.Net)
+local Perks = require(Shared.Perks)
 local Signal = require(Shared.Util.Signal)
 local Log = require(Shared.Log)
 
@@ -47,7 +48,10 @@ function PingService:Start()
 			p = root.Position + (p - root.Position).Unit * Config.Tuning.Ping.MaxDistance
 		end
 		local t = os.clock()
-		if t - (lastAt[player] or 0) < Config.Tuning.Ping.Cooldown then
+		local cooldown = if Perks.has(player, "calm")
+			then Config.Tuning.Ping.CalmCooldown
+			else Config.Tuning.Ping.Cooldown
+		if t - (lastAt[player] or 0) < cooldown then
 			return
 		end
 		lastAt[player] = t

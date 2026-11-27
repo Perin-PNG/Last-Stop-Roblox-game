@@ -12,6 +12,7 @@ local Config = require(Shared.Config)
 local Signal = require(Shared.Util.Signal)
 local Build = require(Shared.Util.Build)
 local Net = require(Shared.Net)
+local Perks = require(Shared.Perks)
 local Log = require(Shared.Log)
 
 local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
@@ -144,6 +145,10 @@ function PlayerStateService.applySpeed(player: Player)
 			stance = "Crouch"
 		elseif i.sprinting and i.stamina > 0 and not heavy then
 			speed = MoveTuning.Sprint
+			stance = "Sprint"
+		elseif heavy and i.sprinting and i.stamina > 0 and Perks.has(player, "pack_mule") then
+			-- Pack Mule: sprint at 70% speed while carrying fuel.
+			speed = math.max(MoveTuning.FuelCarry, MoveTuning.Sprint * MoveTuning.PackMuleSprintShare)
 			stance = "Sprint"
 		elseif heavy then
 			speed = MoveTuning.FuelCarry
@@ -591,6 +596,7 @@ local function tick(dt: number)
 				end
 			else
 				local regen = MoveTuning.StaminaRegenPerSecond
+					* (if Perks.has(player, "pack_mule") then MoveTuning.PackMuleRegenMultiplier else 1)
 				i.stamina = math.min(MoveTuning.StaminaSeconds, i.stamina + regen * dt)
 			end
 			player:SetAttribute("Stamina", math.floor(i.stamina / MoveTuning.StaminaSeconds * 100))

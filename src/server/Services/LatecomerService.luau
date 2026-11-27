@@ -15,6 +15,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Build = require(Shared.Util.Build)
 local Net = require(Shared.Net)
+local Perks = require(Shared.Perks)
 local Log = require(Shared.Log)
 
 local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
@@ -36,6 +37,7 @@ type Walk = {
 	root: BasePart?,
 	lightsOut: number,
 	state: string, -- Waiting | Walking | AtDoor | Boarded | Gone
+	sleepersRang: boolean,
 	token: number,
 }
 
@@ -143,6 +145,7 @@ function LatecomerService.schedule(built: any, deadline: number, tier: number, t
 		root = nil,
 		lightsOut = 0,
 		state = "Waiting",
+		sleepersRang = false,
 		token = token,
 	}
 	RunState:SetAttribute("LatecomerDistance", nil)
@@ -257,11 +260,24 @@ local function step()
 		return
 	end
 	if w.state == "Waiting" then
+		-- Light Sleeper hears the bell a few seconds before everyone else.
+		if not w.sleepersRang and t >= w.startAt - Tuning.LightSleeperLead then
+			w.sleepersRang = true
+			for _, player in Players:GetPlayers() do
+				if Perks.has(player, "light_sleeper") then
+					Net.notify(player, "Sound", { key = "FarBell" })
+				end
+			end
+		end
 		if t >= w.startAt then
 			w.state = "Walking"
 			local model, root = rig(w.from)
 			w.model, w.root = model, root
-			Net.notifyAll("Sound", { key = "FarBell" })
+			for _, player in Players:GetPlayers() do
+				if not Perks.has(player, "light_sleeper") then
+					Net.notify(player, "Sound", { key = "FarBell" })
+				end
+			end
 			Net.notifyAll("Hint", { id = "latecomer" })
 			RunState:SetAttribute("LatecomerStart", t)
 		end

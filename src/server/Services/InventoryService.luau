@@ -15,6 +15,7 @@ local Config = require(Shared.Config)
 local Signal = require(Shared.Util.Signal)
 local Build = require(Shared.Util.Build)
 local Net = require(Shared.Net)
+local Perks = require(Shared.Perks)
 local Log = require(Shared.Log)
 
 local Registry = require(script.Parent.Parent:WaitForChild("Registry"))
@@ -211,8 +212,10 @@ function InventoryService.selectedId(player: Player): string?
 	return id
 end
 
-local function freeRun(i: Inv, width: number): number?
-	for n = 1, Tuning.Slots - width + 1 do
+local slotLimit: (player: Player, adding: string?) -> number
+
+local function freeRun(i: Inv, width: number, limit: number?): number?
+	for n = 1, (limit or Tuning.Slots) - width + 1 do
 		local ok = true
 		for k = n, n + width - 1 do
 			if i.slots[k] ~= "" then
@@ -226,6 +229,19 @@ local function freeRun(i: Inv, width: number): number?
 	return nil
 end
 
+-- Medic's cost: one less slot while carrying a medkit.
+slotLimit = function(player: Player, adding: string?): number
+	if Perks.has(player, "medic") and (adding == "medkit" or table.find(inv(player).slots, "medkit")) then
+		return Tuning.Slots - 1
+	end
+	return Tuning.Slots
+end
+
+-- Steady Hands' cost: one less shot per roll.
+local function filmPerRoll(player: Player): number
+	return if Perks.has(player, "steady_hands") then Tuning.SteadyHandsFilm else Tuning.PolaroidFilm
+end
+
 function InventoryService.hasRoomFor(player: Player, id: string): boolean
 	local def = ItemDefs[id]
 	if not def then
@@ -237,7 +253,7 @@ function InventoryService.hasRoomFor(player: Player, id: string): boolean
 	if def.slots == 0 then
 		return true
 	end
-	return freeRun(inv(player), def.slots) ~= nil
+	return freeRun(inv(player), def.slots, slotLimit(player, id)) ~= nil
 end
 
 -- Changes -------------------------------------------------------------------------------
@@ -256,11 +272,11 @@ function InventoryService.give(player: Player, id: string, amount: number?): boo
 		end
 		i.ticket = true
 	elseif id == "film" then
-		i.film += Tuning.PolaroidFilm
+		i.film += filmPerRoll(player)
 	elseif id == "flashlight" then
 		i.battery = Tuning.BatteryRefill
 	else
-		local at = freeRun(i, def.slots)
+		local at = freeRun(i, def.slots, slotLimit(player, id))
 		if not at then
 			return false
 		end
@@ -270,7 +286,7 @@ function InventoryService.give(player: Player, id: string, amount: number?): boo
 		end
 		i.selected = at
 		if id == "polaroid" and i.film <= 0 then
-			i.film = Tuning.PolaroidFilm
+			i.film = filmPerRoll(player)
 		end
 	end
 	mirror(player)
@@ -496,9 +512,10 @@ local function setLight(player: Player, on: boolean)
 		spot.Name = "Flashlight"
 		spot.Face = Enum.NormalId.Front
 		spot.Range = Tuning.FlashlightRange
-		spot.Angle = Tuning.FlashlightAngle
+		spot.Angle = if Perks.has(player, "night_eyes") then Tuning.NightEyesAngle else Tuning.FlashlightAngle
 		spot.Brightness = Tuning.FlashlightBrightness
-		spot.Color = Color3.fromRGB(255, 244, 220)
+		local cosmetics = Registry.find("CosmeticService")
+		spot.Color = if cosmetics then cosmetics.beamColor(player) else Color3.fromRGB(255, 244, 220)
 		spot.Shadows = true
 		spot.Parent = head
 		light = spot
@@ -532,7 +549,9 @@ local function useMedkit(player: Player): boolean
 		Net.notify(player, "Toast", { text = "Get next to a Downed teammate." })
 		return false
 	end
-	local seconds = Config.Tuning.Player.MedkitSeconds
+	local seconds = if Perks.has(player, "medic")
+		then Config.Tuning.Player.MedicMedkitSeconds
+		else Config.Tuning.Player.MedkitSeconds
 	Net.notifyList({ player, target }, "Progress", { text = "Using medkit", seconds = seconds })
 	task.delay(seconds, function()
 		local r1, r2 = rootOf(player), rootOf(target)
@@ -744,7 +763,7 @@ local function drainTick(dt: number)
 		local head = headOf(player)
 		local light = head and head:FindFirstChild("Flashlight") :: SpotLight?
 		if i.light then
-			local mult = if player:GetAttribute("NightEyes") then Tuning.NightEyesDrainMultiplier else 1
+			local mult = if Perks.has(player, "night_eyes") then Tuning.NightEyesDrainMultiplier else 1
 			i.battery = math.max(0, i.battery - Tuning.FlashlightDrainPerSecond * mult * dt)
 		end
 		local dreadFlicker = player:GetAttribute("DreadFlicker") == true

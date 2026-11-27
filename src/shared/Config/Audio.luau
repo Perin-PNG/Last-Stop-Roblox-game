@@ -24,6 +24,7 @@ local S: { [string]: SoundDef } = {
 	SoftSting = { id = "", volume = 0.5 },
 	Static = { id = "", volume = 0.6 },
 	Camera = { id = "", volume = 0.8, caption = "Camera shutter" },
+	Kiosk = { id = "", volume = 0.5, caption = "Kiosk chimes" },
 	-- Telegraphs and world
 	FarBell = { id = "", volume = 0.6, caption = "A far-off bus-stop bell" },
 	WetSteps = { id = "", volume = 0.7, looped = true, caption = "Wet footsteps, running" },
