@@ -80,3 +80,11 @@ device. Tick them off as you go. Newest milestone at the bottom.
       between two steps tells Claude which tutorial step to fix.
 - [ ] **Phone and gamepad.** Run the M3 playtest once on a phone (Studio's Device
       Emulator is fine for a first look) and once with a controller.
+
+## M4: launch prep
+
+- [ ] Everything in `docs/LAUNCH.md`: the questionnaire, the store page, the soft launch,
+      creators and (if you choose) ads.
+- [ ] **Share prompts:** in a published test on a phone, make it back from the Between or
+      reach an ending. A small "Share" card should appear bottom right. Share prompts can
+      be turned off in Settings.
