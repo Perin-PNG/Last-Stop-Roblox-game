@@ -40,3 +40,17 @@ device. Tick them off as you go. Newest milestone at the bottom.
       "Use audio API" if you want spoken noise to attract entities. It works without.
 - [ ] **The M1 playtest** (see `docs/M1-TEST.md`): a full run of the slice, solo and with
       friends, on PC and on a phone.
+
+## M2: the core game
+
+- [ ] **Turn on API access now.** Home > Game Settings > Security > "Enable Studio Access to
+      API Services". Without it, Tokens, Ranks, Perks, cosmetics and settings only last
+      until you stop the test (the Collections tab says so in red). This needs the place
+      saved to Roblox once (File > Save to Roblox); that doesn't publish it.
+- [ ] **More sounds.** New keys in `src/shared/Config/Audio.luau`: Camera, Kiosk,
+      StreetlightHum, plus the passenger and ride event ones (SoftSting, GlassSlap). Same as
+      before: paste `"rbxassetid://..."` ids or send them to Claude.
+- [ ] **The M2 playtest** (see `docs/M2-TEST.md`): a full run start to finish, then a
+      second run to check that Tokens, Rank and what you bought were saved.
+- [ ] **A 20-person playtest** when you can gather people (the M2 gate is a median session
+      of 25 minutes or more). Friends, a Roblox group or a Discord. Note where people quit.

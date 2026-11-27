@@ -92,6 +92,7 @@ function DebugController:Init()
 	DebugController.addButton("End the run", "end")
 	DebugController.addButton("Fill fuel", "fuel")
 	DebugController.addButton("Bank a fragment", "fragment")
+	DebugController.addButton("+500 Tokens (and XP)", "tokens")
 	DebugController.addButton("Force anomaly (id in seed box)", "anomaly", function()
 		return if seedBox and seedBox.Text ~= "" then seedBox.Text else nil
 	end)

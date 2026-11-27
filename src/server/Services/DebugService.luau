@@ -41,6 +41,12 @@ function DebugService:Init()
 			director.restartWithSeed(math.floor(seed))
 		end
 	end)
+	DebugService.register("tokens", function(player: Player)
+		local data = Registry.find("DataService")
+		if data then
+			data.addTokens(player, 500, "debug")
+		end
+	end)
 	DebugService.register("tobus", function(player: Player)
 		local director = Registry.find("RunDirector")
 		if director and player.Character then
