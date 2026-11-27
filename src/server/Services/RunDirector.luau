@@ -733,8 +733,8 @@ function RunDirector:Start()
 			end
 		end)
 	end)
-	-- With no lobby service (or a Route server), start as soon as someone is here.
-	if Place.hasRun() and not find("LobbyService") then
+	-- With neither a lobby nor matchmaking, start as soon as someone is here.
+	if Place.hasRun() and not find("LobbyService") and not find("MatchmakingService") then
 		task.spawn(function()
 			while #Players:GetPlayers() == 0 do
 				task.wait(0.5)
