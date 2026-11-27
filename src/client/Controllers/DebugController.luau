@@ -88,6 +88,16 @@ function DebugController:Init()
 	DebugController.addButton("Skip stop / ride", "skip")
 	DebugController.addButton("God mode", "god")
 	DebugController.addButton("Teleport into bus", "tobus")
+	DebugController.addButton("Start a run", "start")
+	DebugController.addButton("End the run", "end")
+	DebugController.addButton("Fill fuel", "fuel")
+	DebugController.addButton("Bank a fragment", "fragment")
+	DebugController.addButton("Force anomaly (id in seed box)", "anomaly", function()
+		return if seedBox and seedBox.Text ~= "" then seedBox.Text else nil
+	end)
+	DebugController.addButton("Spawn entity (id in seed box)", "entity", function()
+		return if seedBox and seedBox.Text ~= "" then seedBox.Text else "clerk"
+	end)
 end
 
 function DebugController:Start()

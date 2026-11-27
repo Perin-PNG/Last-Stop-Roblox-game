@@ -67,7 +67,29 @@ local TrueChannel = {
 	"...five pieces of the route. Put them on the board. It's the only way out...",
 }
 
+-- End-of-run titles, by ending id.
+local Endings = {
+	LastStop = { title = "LAST STOP", line = "The bus went on without you." },
+	Transfer = { title = "TRANSFER", line = "You got off at the Terminal. The bus left for its next route." },
+	Home = { title = "HOME", line = "You drove Unit 9 out of Hollow County. The sun came up." },
+	Secret = { title = "THE DRIVER", line = "The face in the mirror is yours now." },
+	Tutorial = { title = "END OF THE LINE, FOR NOW", line = "First Ride complete." },
+	Abandoned = { title = "OUT OF SERVICE", line = "Everyone left the bus." },
+}
+
+-- What a teammate portrait says for each player state.
+local States = {
+	Aboard = "On the bus",
+	Outside = "Off the bus",
+	Downed = "Down",
+	LeftBehind = "Left behind",
+	Static = "Static",
+	Lobby = "At the depot",
+}
+
 return {
+	Endings = Endings,
+	States = States,
 	Pings = Pings,
 	Hints = Hints,
 	PA = PA,
