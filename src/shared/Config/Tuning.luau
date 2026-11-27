@@ -291,6 +291,7 @@ Tuning.Rewards = {
 	FriendBonusMax = 0.3,
 	CommuterPassBonus = 0.25,
 	EvidenceTransfers = 2,
+	CatalogBonus = { 100, 250, 600 }, -- at 25%, 50% and 100% of the Anomaly Catalog
 }
 
 Tuning.Ranks = {

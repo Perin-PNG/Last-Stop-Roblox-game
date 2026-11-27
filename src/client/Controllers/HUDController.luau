@@ -400,7 +400,7 @@ local function showEnd(summary: any)
 		Size = UDim2.new(1, 0, 0, 22),
 		MaxText = 14,
 		TextColor3 = Colors.Dim,
-		LayoutOrder = 4,
+		LayoutOrder = 10,
 	})
 	local pad = Instance.new("UIPadding")
 	pad.PaddingTop = UDim.new(0.3, 0)
@@ -408,6 +408,69 @@ local function showEnd(summary: any)
 	task.delay(Config.Tuning.Run.EndScreenSeconds + 1, function()
 		endFrame.Visible = false
 	end)
+end
+
+-- The Token payout, added under the end screen's stats when the server sends it.
+local function showRewards(p: any)
+	if not endFrame.Visible then
+		return
+	end
+	local old = endFrame:FindFirstChild("Rewards")
+	if old then
+		old:Destroy()
+	end
+	local box = Gui.frame(endFrame, {
+		Name = "Rewards",
+		Size = UDim2.fromOffset(360, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		LayoutOrder = 5,
+	})
+	Gui.list(box, 2)
+	local order = 0
+	local function row(text: string, color: Color3, size: number, font: Enum.Font?)
+		order += 1
+		Gui.label(box, text, {
+			Size = UDim2.new(1, 0, 0, size + 6),
+			MaxText = size,
+			TextColor3 = color,
+			Font = font or Gui.FontMono,
+			LayoutOrder = order,
+		})
+	end
+	if type(p.lines) == "table" then
+		for _, line in p.lines do
+			if type(line) == "table" then
+				row(string.format("%-30s +%d", tostring(line.label), tonumber(line.amount) or 0), Colors.Dim, 14)
+			end
+		end
+	end
+	if type(p.notes) == "table" then
+		for _, note in p.notes do
+			row(tostring(note), Colors.Accent, 14)
+		end
+	end
+	row(`+{tonumber(p.total) or 0} Tokens`, Colors.Good, 26, Enum.Font.GothamBlack)
+	local xp, from, to = tonumber(p.xp) or 0, tonumber(p.thisRankXP) or 0, tonumber(p.nextRankXP) or 1
+	local share = math.clamp((xp - from) / math.max(to - from, 1), 0, 1)
+	row(
+		`Rank {tonumber(p.rank) or 1} {tostring(p.title or "")}   {math.floor(share * 100)}% to the next`,
+		Colors.Dim,
+		14
+	)
+	order += 1
+	local bar = Gui.frame(box, {
+		Size = UDim2.new(1, 0, 0, 6),
+		BackgroundColor3 = Color3.fromRGB(40, 40, 46),
+		BackgroundTransparency = 0,
+		LayoutOrder = order,
+	})
+	local fill = Gui.frame(bar, {
+		Size = UDim2.fromScale(0, 1),
+		BackgroundColor3 = Colors.Good,
+		BackgroundTransparency = 0,
+	})
+	TweenService:Create(fill, TweenInfo.new(1.5, Enum.EasingStyle.Quad), { Size = UDim2.fromScale(share, 1) }):Play()
 end
 
 function HUDController:Init()
@@ -643,6 +706,16 @@ function HUDController:Start()
 	Notify.on("RunEnded", function(p: any)
 		if type(p) == "table" then
 			showEnd(p)
+		end
+	end)
+	Notify.on("Rewards", function(p: any)
+		if type(p) == "table" then
+			showRewards(p)
+		end
+	end)
+	Notify.on("RankUp", function(p: any)
+		if type(p) == "table" then
+			HUDController.toast(`Rank {tonumber(p.rank) or 0}: {tostring(p.title or "")}`, Colors.Good)
 		end
 	end)
 	Notify.on("RunStarted", function()
