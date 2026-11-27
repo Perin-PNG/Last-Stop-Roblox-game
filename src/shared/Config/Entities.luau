@@ -32,6 +32,7 @@ export type EntityDef = {
 	count: number?, -- how many spawn (Watcher groups)
 	countByTier: { number }?,
 	respectsShelter: boolean?, -- loses you inside a building marked Shelter
+	nametag: boolean?, -- wears a random rider's display name (the Resident)
 }
 
 local Entities: { [string]: EntityDef } = {
@@ -202,7 +203,8 @@ local Entities: { [string]: EntityDef } = {
 		telegraph = "It waves like a teammate.",
 		counter = "Real players can ping. It can't.",
 		height = 1,
-		color = Color3.fromRGB(120, 120, 120),
+		color = Color3.fromRGB(70, 90, 130),
+		nametag = true,
 		flareStuns = true,
 	},
 	drowned = {

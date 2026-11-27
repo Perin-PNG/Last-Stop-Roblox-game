@@ -66,6 +66,7 @@ export type Entity = {
 	nextObserve: number,
 	route: { Vector3 },
 	routeIndex: number,
+	bounds: any?, -- per-entity Headlights lot bounds (stop-local), else the stop's
 }
 
 local entities: { Entity } = {}
@@ -538,7 +539,7 @@ local function catchCheck(e: Entity): boolean
 end
 
 local function insideBounds(e: Entity, pos: Vector3): boolean
-	local bounds = e.built.refs.extras.headlightBounds
+	local bounds = e.bounds or e.built.refs.extras.headlightBounds
 	if not bounds then
 		return true
 	end
@@ -800,10 +801,21 @@ end
 
 -- Spawning --------------------------------------------------------------------------------
 
-local function routeFor(built: any): { Vector3 }
+-- A Headlights route. A stop with several lanes (extras.headlightLanes) gives entity i
+-- the i-th lane's route; otherwise everyone shares extras.headlightRoute.
+local function laneFor(built: any, index: number): any?
+	local lanes = built.refs.extras.headlightLanes
+	if type(lanes) == "table" and #lanes > 0 then
+		return lanes[((index - 1) % #lanes) + 1]
+	end
+	return nil
+end
+
+local function routeFor(built: any, index: number): { Vector3 }
 	local out: { Vector3 } = {}
 	local frame: CFrame = built.refs.frame
-	local route = built.refs.extras.headlightRoute
+	local lane = laneFor(built, index)
+	local route = if lane then lane.route else built.refs.extras.headlightRoute
 	if type(route) == "table" then
 		for _, p in route do
 			table.insert(out, frame * p)
@@ -812,7 +824,7 @@ local function routeFor(built: any): { Vector3 }
 	return out
 end
 
-local function spawnEntity(built: any, threatId: string, at: CFrame?): Entity?
+local function spawnEntity(built: any, threatId: string, at: CFrame?, index: number?): Entity?
 	local def = Config.Entities[threatId]
 	if not def then
 		return nil
@@ -821,6 +833,28 @@ local function spawnEntity(built: any, threatId: string, at: CFrame?): Entity?
 		or (built.refs.entitySpawns[1] and built.refs.entitySpawns[1].CFrame)
 		or built.refs.frame * CFrame.new(60, 4, 0)
 	local model, root, hip = buildRig(def, spawn)
+	if def.nametag then
+		-- The Resident wears a teammate's name, but has no ping marker and no voice.
+		local players = Players:GetPlayers()
+		if #players > 0 then
+			local tag = Instance.new("BillboardGui")
+			tag.Name = "Nametag"
+			tag.Size = UDim2.fromOffset(160, 30)
+			tag.StudsOffset = Vector3.new(0, 4.2, 0)
+			tag.MaxDistance = 60
+			tag.AlwaysOnTop = false
+			tag.Parent = root
+			local label = Instance.new("TextLabel")
+			label.BackgroundTransparency = 1
+			label.Size = UDim2.fromScale(1, 1)
+			label.Font = Enum.Font.GothamBold
+			label.TextScaled = true
+			label.TextColor3 = Color3.fromRGB(255, 255, 255)
+			label.TextStrokeTransparency = 0.4
+			label.Text = players[math.random(1, #players)].DisplayName
+			label.Parent = tag
+		end
+	end
 	local e: Entity = {
 		id = threatId,
 		def = def,
@@ -846,8 +880,9 @@ local function spawnEntity(built: any, threatId: string, at: CFrame?): Entity?
 		lastCreak = 0,
 		observed = false,
 		nextObserve = 0,
-		route = if def.behavior == "Headlights" then routeFor(built) else {},
+		route = if def.behavior == "Headlights" then routeFor(built, index or 1) else {},
 		routeIndex = 0,
+		bounds = if def.behavior == "Headlights" then (laneFor(built, index or 1) or {}).bounds else nil,
 	}
 	local ground = groundAt(spawn.Position, { model, World.Folders.Entities })
 	if ground then
@@ -880,13 +915,17 @@ local function spawnGroup(built: any, threatId: string, at: CFrame?, telegraph: 
 	if def.countByTier then
 		count = def.countByTier[math.clamp(built.tier or 1, 1, 3)] or count
 	end
+	local override = built.refs.extras.entityCount
+	if type(override) == "number" then
+		count = math.clamp(math.floor(override), 1, 8)
+	end
 	local out: { Entity } = {}
 	for i = 1, count do
 		local cf = at
 		if not cf and #spawns > 0 then
 			cf = spawns[((i - 1) % #spawns) + 1].CFrame
 		end
-		local e = spawnEntity(built, threatId, cf)
+		local e = spawnEntity(built, threatId, cf, i)
 		if e then
 			table.insert(out, e)
 		end
