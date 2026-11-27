@@ -2,6 +2,13 @@
   "name": "last-stop",
   "tree": {
     "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "$ignoreUnknownInstances": true,
+      "TestBlock": {
+        "$path": "world/TestBlock.model.json"
+      }
+    },
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
       "Shared": {
